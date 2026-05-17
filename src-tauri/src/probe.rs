@@ -151,5 +151,8 @@ pub fn probe_media(path: String) -> Result<MediaProbe, AppError> {
         });
     }
 
-    Ok(run_ffprobe(&path).map(parse_ffprobe_json).unwrap_or_default())
+    let json = run_ffprobe(&path).ok_or_else(|| {
+        AppError::Other("Could not read media file — corrupt, empty, or unrecognized format".to_string())
+    })?;
+    Ok(parse_ffprobe_json(json))
 }

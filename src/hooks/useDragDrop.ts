@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { DragEvent } from "react";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { fileKindFromPath } from "@/lib/kinds";
@@ -61,32 +62,50 @@ export function useDragDrop() {
     }
   }, []);
 
+  // Tauri v2 native drag-drop provides absolute filesystem paths.
+  // Requires dragDropEnabled: true in tauri.conf.json.
+  // HTML5 ondrop is intentionally NOT used — (file as any).path is unavailable in WebView2.
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    getCurrentWebviewWindow()
+      .onDragDropEvent((event) => {
+        const payload = event.payload;
+        if (payload.type === "enter") {
+          setIsDraggingOver(true);
+        } else if (payload.type === "drop") {
+          setIsDraggingOver(false);
+          if (payload.paths.length > 0) {
+            void enqueuePaths(payload.paths);
+          }
+        } else if (payload.type === "leave") {
+          setIsDraggingOver(false);
+        }
+      })
+      .then((fn) => {
+        unlisten = fn;
+      });
+
+    return () => {
+      unlisten?.();
+    };
+  }, [enqueuePaths]);
+
+  // Prevent browser default drop behaviour (file navigation / open).
+  // These React handlers are kept so App.tsx need not change.
   const onDragOver = useCallback((e: DragEvent<HTMLElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "copy"; // prevents 🚫 cursor
-    setIsDraggingOver(true);
+    e.dataTransfer.dropEffect = "copy";
   }, []);
 
   const onDragLeave = useCallback((e: DragEvent<HTMLElement>) => {
     e.preventDefault();
-    setIsDraggingOver(false);
   }, []);
 
-  const onDrop = useCallback(
-    (e: DragEvent<HTMLElement>) => {
-      e.preventDefault();
-      setIsDraggingOver(false);
-      const files = Array.from(e.dataTransfer.files);
-      // (file as any).path — non-standard but present in WebView2/Chromium (see tauri#13171)
-      const paths = files
-        .map((f) => (f as File & { path?: string }).path)
-        .filter((p): p is string => typeof p === "string" && p.length > 0);
-      if (paths.length > 0) {
-        void enqueuePaths(paths);
-      }
-    },
-    [enqueuePaths]
-  );
+  // No-op: actual file paths arrive via Tauri's onDragDropEvent above.
+  const onDrop = useCallback((e: DragEvent<HTMLElement>) => {
+    e.preventDefault();
+  }, []);
 
   return { isDraggingOver, onDragOver, onDragLeave, onDrop, enqueuePaths };
 }

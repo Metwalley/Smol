@@ -19,12 +19,16 @@
         "minHeight": 560,
         "decorations": true,
         "transparent": false,
-        "dragDropEnabled": false,
+        "dragDropEnabled": true,
         "theme": "Dark"
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/**/*"]
+      }
     }
   },
   "bundle": {
