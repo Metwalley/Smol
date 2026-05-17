@@ -1,0 +1,19 @@
+# Node
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/binaries/*.exe
+
+# pnpm
+pnpm-debug.log*
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# OS
+Thumbs.db
