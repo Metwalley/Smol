@@ -8,6 +8,7 @@ import { useJobsStore } from "@/store/jobs";
 import type { QueuedFile } from "@/store/jobs";
 import { useDragDrop } from "@/hooks/useDragDrop";
 import { EmptyState } from "./EmptyState";
+import { FileList } from "@/components/filelist/FileList";
 
 const VIDEO_EXTS  = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "wmv", "flv"];
 const AUDIO_EXTS  = ["mp3", "m4a", "aac", "wav", "flac", "ogg", "opus", "wma"];
@@ -34,7 +35,7 @@ export function Dropzone() {
     if (!selected) return;
     const paths = Array.isArray(selected) ? selected : [selected];
 
-    const toAdd: Omit<QueuedFile, "addedAt">[] = [];
+    const toAdd: Omit<QueuedFile, "addedAt" | "probe" | "thumbnailPath" | "estimateBytes">[] = [];
     for (const path of paths) {
       const info = await getPathInfo(path);
       if (!info.exists) continue;
@@ -54,19 +55,23 @@ export function Dropzone() {
   }
 
   return (
+    // The whole content area is the drag surface (skill: smol-flex-scroll-fix)
     <div
-      className={cn(
-        "flex flex-col flex-1 min-h-0 m-3 rounded-xl border-2 border-dashed transition-colors",
-        isDraggingOver
-          ? "border-indigo-500 bg-indigo-950/30"
-          : "border-zinc-700 hover:border-zinc-500"
-      )}
+      className="flex flex-col flex-1 min-h-0"
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
       {jobCount === 0 ? (
-        <div className="flex flex-col flex-1 items-center justify-center gap-4">
+        // Empty state: visual dashed-border drop target
+        <div
+          className={cn(
+            "flex flex-col flex-1 items-center justify-center gap-4 m-3 rounded-xl border-2 border-dashed transition-colors",
+            isDraggingOver
+              ? "border-indigo-500 bg-indigo-950/30"
+              : "border-zinc-700 hover:border-zinc-500"
+          )}
+        >
           <EmptyState />
           <button
             onClick={handleOpenDialog}
@@ -77,10 +82,19 @@ export function Dropzone() {
           </button>
         </div>
       ) : (
-        <div className="flex flex-col flex-1 min-h-0">
-          {/* Phase 3 will replace this with the full FileList */}
-          <div className="flex items-center justify-between px-4 py-2 shrink-0">
-            <span className="text-zinc-400 text-xs">{jobCount} file{jobCount !== 1 ? "s" : ""} queued</span>
+        // Non-empty: compact top bar + FileList (takes remaining flex space)
+        <>
+          <div
+            className={cn(
+              "flex items-center justify-between mx-3 mt-3 px-3 py-2 rounded-lg border-2 transition-colors shrink-0",
+              isDraggingOver
+                ? "border-indigo-500 bg-indigo-950/30"
+                : "border-transparent bg-zinc-900/50"
+            )}
+          >
+            <span className="text-zinc-500 text-xs">
+              {isDraggingOver ? "Drop to add…" : "Drop files anywhere to add"}
+            </span>
             <button
               onClick={handleOpenDialog}
               className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
@@ -89,7 +103,10 @@ export function Dropzone() {
               Add more…
             </button>
           </div>
-        </div>
+
+          {/* FileList fills remaining space; has own min-h-0 chain internally */}
+          <FileList />
+        </>
       )}
     </div>
   );

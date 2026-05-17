@@ -10,6 +10,7 @@ pub enum AppError {
     #[error("Path does not exist: {0}")]
     PathDoesNotExist(String),
 
+    #[allow(dead_code)] // Phase 4
     #[error("{0}")]
     Other(String),
 }

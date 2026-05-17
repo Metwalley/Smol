@@ -1,5 +1,7 @@
 mod error;
 mod fs_bridge;
+mod probe;
+mod thumbs;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -10,6 +12,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             fs_bridge::get_path_info,
             fs_bridge::list_dir_supported,
+            probe::probe_media,
+            thumbs::generate_thumbnail,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

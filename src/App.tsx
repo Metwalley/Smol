@@ -1,7 +1,7 @@
 import { Toaster } from "sonner";
 import { Titlebar } from "@/components/titlebar/Titlebar";
 import { Dropzone } from "@/components/dropzone/Dropzone";
-import { BareJobList } from "@/components/filelist/BareJobList";
+import { QueueTotalBanner } from "@/components/filelist/QueueTotalBanner";
 import { useMaximized } from "@/hooks/useMaximized";
 
 export default function App() {
@@ -15,10 +15,12 @@ export default function App() {
     >
       <Titlebar />
 
-      {/* Main content — flex-col flex-1 min-h-0 ensures BareJobList can scroll (skill: smol-flex-scroll-fix) */}
+      {/* Main content — flex-col flex-1 min-h-0 ensures FileList can scroll (skill: smol-flex-scroll-fix) */}
       <div className="flex flex-col flex-1 min-h-0">
+        {/* Dropzone: flex-1 min-h-0 — contains EmptyState or (add-bar + FileList) */}
         <Dropzone />
-        <BareJobList />
+        {/* Banner: shrink-0, hidden when queue empty */}
+        <QueueTotalBanner />
       </div>
 
       {/* Hardcode theme="dark" — never rely on system theme detection (bug #2) */}
