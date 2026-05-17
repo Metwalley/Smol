@@ -11,7 +11,7 @@
 |---|---|
 | Desktop shell | Tauri 2 |
 | UI framework | React 19 + TypeScript 5 |
-| Bundler | Vite 6 |
+| Bundler | Vite 7 |
 | Styling | Tailwind 4 + shadcn/ui (Radix primitives) |
 | State | Zustand 5 |
 | Animation | Framer Motion |
@@ -152,6 +152,9 @@ cargo clippy              # Rust lint
 5. No `console.log` in committed code. Use the `log` Rust crate + `src/lib/log.ts` wrapper.
 6. No silent stack changes. No TODO comments.
 7. Stop at end of each phase and report. Do not start phase N+1 without sign-off.
+8. **CLAUDE.md is a content copy of AGENTS.md, not a symlink** (Windows symlinks require admin
+   rights). When you edit AGENTS.md, you MUST also update CLAUDE.md in the same commit.
+   A pre-commit hook in Phase 12 will enforce this; until then, manual.
 
 ---
 

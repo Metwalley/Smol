@@ -41,8 +41,5 @@
       "nsis": {}
     }
   },
-  "plugins": {
-    "dialog": {},
-    "store": {}
-  }
+  "plugins": {}
 }
