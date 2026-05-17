@@ -1,6 +1,7 @@
 import { Toaster } from "sonner";
 import { Titlebar } from "@/components/titlebar/Titlebar";
-import { EmptyState } from "@/components/dropzone/EmptyState";
+import { Dropzone } from "@/components/dropzone/Dropzone";
+import { BareJobList } from "@/components/filelist/BareJobList";
 import { useMaximized } from "@/hooks/useMaximized";
 
 export default function App() {
@@ -14,9 +15,10 @@ export default function App() {
     >
       <Titlebar />
 
-      {/* Main content area — phases 2+ will populate this */}
+      {/* Main content — flex-col flex-1 min-h-0 ensures BareJobList can scroll (skill: smol-flex-scroll-fix) */}
       <div className="flex flex-col flex-1 min-h-0">
-        <EmptyState />
+        <Dropzone />
+        <BareJobList />
       </div>
 
       {/* Hardcode theme="dark" — never rely on system theme detection (bug #2) */}

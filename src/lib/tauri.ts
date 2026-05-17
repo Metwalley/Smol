@@ -1,25 +1,19 @@
 import { invoke } from "@tauri-apps/api/core";
 
+// Mirrors PathInfo in src-tauri/src/fs_bridge.rs
 export interface PathInfo {
   exists: boolean;
   isDir: boolean;
-  sizeBytes: number;
+  size: number;
   name: string;
   extension: string | null;
+  path: string;
 }
 
+/** Get metadata for a single path (file or directory). Never rejects on not-found. */
 export const getPathInfo = (path: string) =>
   invoke<PathInfo>("get_path_info", { path });
 
-export const listSupportedInDir = (path: string) =>
-  invoke<PathInfo[]>("list_supported_in_dir", { path });
-
-export const ensureOutputPath = (
-  inputPath: string,
-  pattern: string,
-  outputMode: string,
-  customDir?: string
-) => invoke<string>("ensure_output_path", { inputPath, pattern, outputMode, customDir });
-
-export const revealInExplorer = (path: string) =>
-  invoke<void>("reveal_in_explorer", { path });
+/** Walk a directory one level deep and return supported files only. */
+export const listDirSupported = (path: string) =>
+  invoke<PathInfo[]>("list_dir_supported", { path });

@@ -1,37 +1,49 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import type { Job } from "@/types";
+import type { FileKind } from "@/types";
+
+// Phase 2 minimal job shape. Phase 4 will expand this to the full
+// state machine (queued | probing | thumbnailing | ready | encoding | done | failed | cancelled).
+export interface QueuedFile {
+  id: string;
+  path: string;
+  name: string;
+  kind: FileKind;
+  sizeBytes: number;
+  addedAt: number;
+}
 
 interface JobsState {
-  jobs: Record<string, Job>;
+  jobs: Record<string, QueuedFile>;
   jobIds: string[];
-  addJob: (job: Job) => void;
-  updateJob: (id: string, patch: Partial<Job>) => void;
+  addPaths: (files: Omit<QueuedFile, "addedAt">[]) => void;
   removeJob: (id: string) => void;
-  clearAll: () => void;
+  clear: () => void;
 }
 
 export const useJobsStore = create<JobsState>((set) => ({
   jobs: {},
   jobIds: [],
-  addJob: (job) =>
-    set((s) => ({
-      jobs: { ...s.jobs, [job.id]: job },
-      jobIds: [...s.jobIds, job.id],
-    })),
-  updateJob: (id, patch) =>
-    set((s) => ({ jobs: { ...s.jobs, [id]: { ...s.jobs[id], ...patch } } })),
+  addPaths: (files) =>
+    set((s) => {
+      const now = Date.now();
+      const newJobs = { ...s.jobs };
+      const newIds = [...s.jobIds];
+      for (const f of files) {
+        newJobs[f.id] = { ...f, addedAt: now };
+        newIds.push(f.id);
+      }
+      return { jobs: newJobs, jobIds: newIds };
+    }),
   removeJob: (id) =>
     set((s) => {
-      const { [id]: _removed, ...rest } = s.jobs;
+      const { [id]: _dropped, ...rest } = s.jobs;
       return { jobs: rest, jobIds: s.jobIds.filter((x) => x !== id) };
     }),
-  clearAll: () => set({ jobs: {}, jobIds: [] }),
+  clear: () => set({ jobs: {}, jobIds: [] }),
 }));
 
 // Atomic selectors — one field each (HR-7)
-export const useJob = (id: string) => useJobsStore((s) => s.jobs[id]);
-export const useAllJobIds = () => useJobsStore(useShallow((s) => s.jobIds));
-export const useJobStatus = (id: string) => useJobsStore((s) => s.jobs[id]?.status);
-export const useJobProgress = (id: string) => useJobsStore((s) => s.jobs[id]?.progress ?? 0);
-export const useJobCount = () => useJobsStore((s) => s.jobIds.length);
+export const useAllJobIds   = () => useJobsStore(useShallow((s) => s.jobIds));
+export const useJob         = (id: string) => useJobsStore((s) => s.jobs[id]);
+export const useJobCount    = () => useJobsStore((s) => s.jobIds.length);
