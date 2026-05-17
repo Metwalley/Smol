@@ -1,19 +1,24 @@
-import { useJobsStore } from "@/store/jobs";
+import {
+  useJobCount,
+  useTotalInputBytes,
+  useAllEstimatesReady,
+  useTotalEstimatedBytes,
+} from "@/store/jobs";
 import { formatBytes } from "@/lib/format";
 
+/**
+ * HR-7 clean: every selector returns a primitive.
+ * No Object.values / array construction inside any useJobsStore call.
+ */
 export function QueueTotalBanner() {
-  const jobs = useJobsStore((s) => Object.values(s.jobs));
+  const jobCount       = useJobCount();            // number
+  const totalInput     = useTotalInputBytes();     // number
+  const allReady       = useAllEstimatesReady();   // boolean
+  const totalEstimated = useTotalEstimatedBytes(); // number (0 until ready)
 
-  if (jobs.length === 0) return null;
+  if (jobCount === 0) return null;
 
-  const totalInput = jobs.reduce((s, j) => s + j.sizeBytes, 0);
-  const estimates = jobs.map((j) => j.estimateBytes);
-  const allKnown = estimates.length > 0 && estimates.every((e) => e !== undefined);
-  const totalEstimated = allKnown
-    ? estimates.reduce((s, e) => s + (e ?? 0), 0)
-    : undefined;
-
-  const saved = totalEstimated !== undefined ? totalInput - totalEstimated : undefined;
+  const saved    = allReady ? totalInput - totalEstimated : undefined;
   const savedPct =
     saved !== undefined && totalInput > 0
       ? Math.round((saved / totalInput) * 100)
@@ -23,11 +28,13 @@ export function QueueTotalBanner() {
     <div className="flex items-center gap-2 px-4 py-2 mx-3 mb-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-400 shrink-0">
       <span className="font-medium text-zinc-300">Estimated total</span>
       <span className="text-zinc-600">·</span>
-      <span>{formatBytes(totalInput)}</span>
-      {totalEstimated !== undefined && (
+      <span className="font-mono">{formatBytes(totalInput)}</span>
+      {allReady && (
         <>
           <span className="text-zinc-600">→</span>
-          <span className="text-indigo-400 font-medium">{formatBytes(totalEstimated)}</span>
+          <span className="font-mono text-indigo-400 font-medium">
+            {formatBytes(totalEstimated)}
+          </span>
           {savedPct !== undefined && savedPct > 0 && (
             <>
               <span className="text-zinc-600">·</span>
@@ -36,7 +43,7 @@ export function QueueTotalBanner() {
           )}
         </>
       )}
-      {totalEstimated === undefined && (
+      {!allReady && (
         <span className="text-zinc-600 italic">estimating…</span>
       )}
     </div>

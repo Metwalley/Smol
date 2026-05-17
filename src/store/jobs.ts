@@ -102,10 +102,40 @@ async function kickOffPipeline(
 }
 
 // ─── Atomic selectors (HR-7) — one field per selector ─────────────────────────
+//
+// RULE: every selector must return a primitive (number/string/boolean/undefined)
+// OR a reference that is already stored in state (s.jobs[id], s.jobIds, …).
+// Never return a newly-constructed object/array/tuple — that creates a new
+// reference on every call and triggers the infinite-re-render loop (bug #1).
 
+// Per-job
 export const useAllJobIds    = () => useJobsStore(useShallow((s) => s.jobIds));
 export const useJob          = (id: string) => useJobsStore((s) => s.jobs[id]);
 export const useJobCount     = () => useJobsStore((s) => s.jobIds.length);
 export const useJobProbe     = (id: string) => useJobsStore((s) => s.jobs[id]?.probe);
 export const useJobThumbnail = (id: string) => useJobsStore((s) => s.jobs[id]?.thumbnailPath);
 export const useJobEstimate  = (id: string) => useJobsStore((s) => s.jobs[id]?.estimateBytes);
+
+// Queue-level aggregates — Pattern C: loop inside selector, return a primitive.
+// Safe because numbers compare by value; no new reference is ever produced.
+export const useTotalInputBytes = () =>
+  useJobsStore((s) => {
+    let t = 0;
+    for (const id of s.jobIds) t += s.jobs[id]?.sizeBytes ?? 0;
+    return t;
+  });
+
+// true only when every job in the queue has a resolved estimate (no undefined)
+export const useAllEstimatesReady = () =>
+  useJobsStore(
+    (s) =>
+      s.jobIds.length > 0 &&
+      s.jobIds.every((id) => s.jobs[id]?.estimateBytes !== undefined)
+  );
+
+export const useTotalEstimatedBytes = () =>
+  useJobsStore((s) => {
+    let t = 0;
+    for (const id of s.jobIds) t += s.jobs[id]?.estimateBytes ?? 0;
+    return t;
+  });
