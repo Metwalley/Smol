@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Override Tailwind's default font-sans and font-mono with variable fonts */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
 @layer base {
   :root {
     --background: 0 0% 3.9%;
@@ -32,6 +38,6 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
   }
 }

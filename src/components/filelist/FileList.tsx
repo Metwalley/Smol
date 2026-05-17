@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { formatBytesExact } from "@/lib/format";
+import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
 import { kindBadgeColor, kindLabel } from "@/lib/kinds";
-import {
-  useAllJobIds,
-  useJob,
-  useJobsStore,
-} from "@/store/jobs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAllJobIds, useJob, useJobsStore } from "@/store/jobs";
 import type { QueuedFile } from "@/store/jobs";
 import type { FileKind } from "@/types";
 import { TypeFilterChips } from "./TypeFilterChips";
@@ -45,8 +43,18 @@ function probeLabel(job: QueuedFile): string | null {
 
 function Thumbnail({ job }: { job: QueuedFile }) {
   const thumbPath = job.thumbnailPath;
-  const src = thumbPath ? convertFileSrc(thumbPath) : null;
 
+  // undefined = still probing/loading → animate-pulse shimmer
+  if (thumbPath === undefined) {
+    return (
+      <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800">
+        <div className="w-full h-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse" />
+      </div>
+    );
+  }
+
+  // string = actual thumbnail path
+  const src = thumbPath ? convertFileSrc(thumbPath) : null;
   return (
     <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800 flex items-center justify-center">
       {src ? (
@@ -59,7 +67,7 @@ function Thumbnail({ job }: { job: QueuedFile }) {
           }}
         />
       ) : (
-        // Kind-based placeholder — shown while thumbnail is loading or unavailable
+        // null = no thumbnail available → kind badge placeholder
         <span
           className={cn(
             "text-xs font-bold px-1.5 py-0.5 rounded",
@@ -76,37 +84,108 @@ function Thumbnail({ job }: { job: QueuedFile }) {
 // ─── Single job row ───────────────────────────────────────────────────────────
 
 function JobRow({ jobId }: { jobId: string }) {
-  const job = useJob(jobId);
+  const job       = useJob(jobId);
   const removeJob = useJobsStore((s) => s.removeJob);
 
   if (!job) return null;
 
-  const meta = probeLabel(job);
+  const isFailed     = job.pipelineError !== undefined;
+  const meta         = probeLabel(job);
+  const dirName      = parentDirName(job.path);
+  const displayName  = middleTruncate(job.name, 50);
   const estimateLabel =
     job.estimateBytes !== undefined
       ? `~${formatBytesExact(job.estimateBytes)}`
       : "—";
 
+  // Codec badge: video-only, requires probed videoCodec
+  const codecBadge =
+    job.kind === "video" && job.probe?.videoCodec
+      ? job.probe.videoCodec.toUpperCase()
+      : null;
+
+  if (isFailed) {
+    // ── Failed state: muted background, red "Failed" label, tooltip with error ──
+    return (
+      <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/30 border border-zinc-800/50 opacity-70 group">
+        <Thumbnail job={job} />
+
+        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+          <span
+            className="text-sm font-medium text-zinc-500 truncate"
+            title={job.name}
+          >
+            {displayName}
+          </span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-mono text-zinc-600">
+              {formatBytesExact(job.sizeBytes)}
+            </span>
+            <span className="text-zinc-700">·</span>
+            <span
+              className="text-red-500 font-medium"
+              title={job.pipelineError}
+            >
+              Failed
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => removeJob(jobId)}
+          className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
+          aria-label="Remove file"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  // ── Normal state ──────────────────────────────────────────────────────────
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/50 hover:bg-zinc-900 transition-colors group">
       <Thumbnail job={job} />
 
-      {/* File info */}
+      {/* File info: name + metadata row */}
       <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-        <span className="text-sm font-medium text-zinc-100 truncate">{job.name}</span>
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <span>{formatBytesExact(job.sizeBytes)}</span>
+        <span
+          className="text-sm font-medium text-zinc-100 truncate"
+          title={job.name}
+        >
+          {displayName}
+        </span>
+
+        <div className="flex items-center gap-1.5 flex-wrap text-xs text-zinc-500">
+          {/* Parent directory hint */}
+          {dirName && (
+            <>
+              <span className="text-[10px] text-zinc-600">{dirName}</span>
+              <span className="text-zinc-700">·</span>
+            </>
+          )}
+          {/* File size — font-mono for numeric alignment */}
+          <span className="font-mono">{formatBytesExact(job.sizeBytes)}</span>
+
+          {/* Probe metadata: duration / dimensions / pages — font-mono */}
           {meta && (
             <>
               <span className="text-zinc-700">·</span>
-              <span>{meta}</span>
+              <span className="font-mono">{meta}</span>
             </>
+          )}
+
+          {/* Codec badge — video rows with probed codec only */}
+          {codecBadge && (
+            <span className="font-mono text-[10px] border border-zinc-700 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-wide leading-none">
+              {codecBadge}
+            </span>
           )}
         </div>
       </div>
 
-      {/* Estimated output size */}
-      <span className="text-xs text-indigo-400 font-medium shrink-0 w-14 text-right">
+      {/* Estimated output size — font-mono for numeric fields */}
+      <span className="font-mono text-xs text-indigo-400 font-medium shrink-0 w-16 text-right">
         {estimateLabel}
       </span>
 
@@ -120,7 +199,7 @@ function JobRow({ jobId }: { jobId: string }) {
         {kindLabel(job.kind)}
       </span>
 
-      {/* Remove button */}
+      {/* Remove button — visible on hover */}
       <button
         onClick={() => removeJob(jobId)}
         className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
@@ -136,16 +215,13 @@ function JobRow({ jobId }: { jobId: string }) {
 
 export function FileList() {
   const jobIds = useAllJobIds();
-  const jobs = useJobsStore((s) => s.jobs);
+  const jobs   = useJobsStore((s) => s.jobs);
   const [activeFilter, setActiveFilter] = useState<FileKind | "all">("all");
 
   // Counts per kind for filter chips
   const counts: Record<FileKind | "all", number> = {
     all: jobIds.length,
-    video: 0,
-    audio: 0,
-    image: 0,
-    pdf: 0,
+    video: 0, audio: 0, image: 0, pdf: 0,
   };
   for (const id of jobIds) {
     const kind = jobs[id]?.kind;
@@ -161,26 +237,36 @@ export function FileList() {
   if (jobIds.length === 0) return null;
 
   return (
-    // flex-col flex-1 min-h-0 — required so the overflow-y-auto below actually scrolls (skill: smol-flex-scroll-fix)
+    // flex-col flex-1 min-h-0 — required by smol-flex-scroll-fix skill
     <div className="flex flex-col flex-1 min-h-0 mx-3 mb-3">
       {/* Filter chips — fixed height, never scrolls */}
-      <TypeFilterChips
-        counts={counts}
-        active={activeFilter}
-        onSelect={setActiveFilter}
-      />
+      <TypeFilterChips counts={counts} active={activeFilter} onSelect={setActiveFilter} />
 
-      {/* Scrollable job list */}
-      <div className="overflow-y-auto flex-1 min-h-0 space-y-1">
-        {visibleIds.map((id) => (
-          <JobRow key={id} jobId={id} />
-        ))}
-        {visibleIds.length === 0 && (
-          <p className="text-center text-zinc-600 text-sm py-8">
-            No {activeFilter} files in queue
-          </p>
-        )}
-      </div>
+      {/* Scrollable job list via shadcn ScrollArea (thin dark scrollbar) */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="space-y-1 py-1 pr-2">
+          <AnimatePresence initial={false}>
+            {visibleIds.map((id) => (
+              // Row entry: fade + slide up; exit: fade left
+              <motion.div
+                key={id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+              >
+                <JobRow jobId={id} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {visibleIds.length === 0 && (
+            <p className="text-center text-zinc-600 text-sm py-8">
+              No {activeFilter} files in queue
+            </p>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }

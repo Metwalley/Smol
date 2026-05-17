@@ -17,13 +17,20 @@ export interface QueuedFile {
   probe?: MediaProbe;
   thumbnailPath?: string | null;
   estimateBytes?: number;
+  // Phase 3.5: set when probe_media returns Err; row renders as "Failed" with tooltip
+  pipelineError?: string;
 }
 
 interface JobsState {
   jobs: Record<string, QueuedFile>;
   jobIds: string[];
-  addPaths: (files: Omit<QueuedFile, "addedAt" | "probe" | "thumbnailPath" | "estimateBytes">[]) => void;
-  updateJob: (id: string, updates: Partial<Pick<QueuedFile, "probe" | "thumbnailPath" | "estimateBytes">>) => void;
+  addPaths: (
+    files: Omit<QueuedFile, "addedAt" | "probe" | "thumbnailPath" | "estimateBytes" | "pipelineError">[]
+  ) => void;
+  updateJob: (
+    id: string,
+    updates: Partial<Pick<QueuedFile, "probe" | "thumbnailPath" | "estimateBytes" | "pipelineError">>
+  ) => void;
   removeJob: (id: string) => void;
   clear: () => void;
 }
@@ -77,8 +84,11 @@ async function kickOffPipeline(
     probe = await probeMedia(path);
     const estimateBytes = estimateOutputBytes({ kind, sizeBytes, probe }, "recommended") ?? undefined;
     useJobsStore.getState().updateJob(jobId, { probe, estimateBytes });
-  } catch {
-    // probe failure is non-fatal; row still shows in list with no metadata
+  } catch (err) {
+    // Probe failed — mark row as failed with error message
+    const msg = err instanceof Error ? err.message : String(err);
+    useJobsStore.getState().updateJob(jobId, { pipelineError: msg });
+    // Fall through: still try thumbnail even without probe metadata
   }
 
   // 2. Generate thumbnail (probe result supplies duration_sec for video seek)
@@ -86,7 +96,8 @@ async function kickOffPipeline(
     const thumbPath = await generateThumbnail(path, kind, probe?.durationSec ?? null);
     useJobsStore.getState().updateJob(jobId, { thumbnailPath: thumbPath });
   } catch {
-    // thumbnail failure is non-fatal; row shows kind-badge placeholder
+    // Thumbnail failure is non-fatal; row shows kind-badge placeholder
+    useJobsStore.getState().updateJob(jobId, { thumbnailPath: null });
   }
 }
 
