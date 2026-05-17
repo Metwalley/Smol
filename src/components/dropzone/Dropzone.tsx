@@ -1,6 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { v4 as uuidv4 } from "uuid";
-import { Upload } from "lucide-react";
+import { Upload, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { fileKindFromPath } from "@/lib/kinds";
@@ -118,13 +118,23 @@ export function Dropzone({ isDraggingOver }: DropzoneProps) {
             <span className="text-zinc-500 text-xs">
               {isDraggingOver ? "Drop to add…" : "Drop files anywhere to add"}
             </span>
-            <button
-              onClick={handleOpenDialog}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              Add more…
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => useJobsStore.getState().clear()}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 text-xs transition-colors"
+                title="Clear all files from queue"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Clear all
+              </button>
+              <button
+                onClick={handleOpenDialog}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs transition-colors"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Add more…
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

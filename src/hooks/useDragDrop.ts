@@ -65,10 +65,17 @@ export function useDragDrop() {
   // Tauri v2 native drag-drop provides absolute filesystem paths.
   // Requires dragDropEnabled: true in tauri.conf.json.
   // HTML5 ondrop is intentionally NOT used — (file as any).path is unavailable in WebView2.
+  //
+  // Strict Mode double-mount fix: onDragDropEvent() is async (returns Promise<UnlistenFn>).
+  // In Strict Mode, React runs cleanup BEFORE the Promise resolves, so `unlisten` would
+  // still be undefined at cleanup time — leaving the first listener permanently attached.
+  // The `cancelled` flag detects this: if cleanup already ran, we call fn() immediately
+  // upon resolution to unregister the listener that otherwise would have leaked.
   useEffect(() => {
     let unlisten: (() => void) | undefined;
+    let cancelled = false;
 
-    getCurrentWebviewWindow()
+    void getCurrentWebviewWindow()
       .onDragDropEvent((event) => {
         const payload = event.payload;
         if (payload.type === "enter") {
@@ -83,13 +90,18 @@ export function useDragDrop() {
         }
       })
       .then((fn) => {
-        unlisten = fn;
+        if (cancelled) {
+          fn(); // cleanup already ran — unregister immediately
+        } else {
+          unlisten = fn;
+        }
       });
 
     return () => {
+      cancelled = true;
       unlisten?.();
     };
-  }, [enqueuePaths]);
+  }, [enqueuePaths]); // enqueuePaths is stable (useCallback []) — effect runs once
 
   // Prevent browser default drop behaviour (file navigation / open).
   // These React handlers are kept so App.tsx need not change.

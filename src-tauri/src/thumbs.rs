@@ -153,7 +153,7 @@ fn generate_image_thumb(path: &str, out: &Path) -> bool {
 // ─── Command ──────────────────────────────────────────────────────────────────
 
 #[tauri::command]
-pub fn generate_thumbnail(
+pub async fn generate_thumbnail(
     app: tauri::AppHandle,
     path: String,
     kind: String,

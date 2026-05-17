@@ -132,7 +132,7 @@ fn count_pdf_pages(path: &str) -> Option<u32> {
 // ─── Command ──────────────────────────────────────────────────────────────────
 
 #[tauri::command]
-pub fn probe_media(path: String) -> Result<MediaProbe, AppError> {
+pub async fn probe_media(path: String) -> Result<MediaProbe, AppError> {
     let p = Path::new(&path);
     if !p.exists() {
         return Err(AppError::PathDoesNotExist(path));

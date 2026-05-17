@@ -57,7 +57,7 @@ export default function App() {
       </LayoutGroup>
 
       {/* Hardcode theme="dark" — never rely on system theme detection (bug #2) */}
-      <Toaster theme="dark" position="bottom-right" />
+      <Toaster theme="dark" position="bottom-right" closeButton />
     </div>
   );
 }
