@@ -7,14 +7,11 @@ export function useMaximized(): boolean {
   useEffect(() => {
     const win = getCurrentWindow();
     win.isMaximized().then(setMaximized);
-    let cleanup: (() => void) | undefined;
-    win.onResized(async () => {
+    const unlisten = win.onResized(async () => {
       setMaximized(await win.isMaximized());
-    }).then((unlisten) => {
-      cleanup = unlisten;
     });
     return () => {
-      cleanup?.();
+      unlisten.then((f) => f());
     };
   }, []);
 
