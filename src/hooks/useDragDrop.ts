@@ -6,13 +6,13 @@ import { v4 as uuidv4 } from "uuid";
 import { fileKindFromPath } from "@/lib/kinds";
 import { getPathInfo, listDirSupported } from "@/lib/tauri";
 import { useJobsStore } from "@/store/jobs";
-import type { QueuedFile } from "@/store/jobs";
+import type { NewJobInput } from "@/store/jobs";
 
 export function useDragDrop() {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const enqueuePaths = useCallback(async (rawPaths: string[]) => {
-    const toAdd: Omit<QueuedFile, "addedAt">[] = [];
+    const toAdd: NewJobInput[] = [];
     const unsupportedExts = new Set<string>();
 
     for (const path of rawPaths) {
@@ -25,10 +25,10 @@ export function useDragDrop() {
         for (const child of children) {
           toAdd.push({
             id: uuidv4(),
-            path: child.path,
+            inputPath: child.path,
             name: child.name,
             kind: fileKindFromPath(child.name) as import("@/types").FileKind,
-            sizeBytes: child.size,
+            inputBytes: child.size,
           });
         }
         continue;
@@ -43,10 +43,10 @@ export function useDragDrop() {
 
       toAdd.push({
         id: uuidv4(),
-        path: info.path,
+        inputPath: info.path,
         name: info.name,
         kind,
-        sizeBytes: info.size,
+        inputBytes: info.size,
       });
     }
 
@@ -58,7 +58,7 @@ export function useDragDrop() {
     }
 
     if (toAdd.length > 0) {
-      useJobsStore.getState().addPaths(toAdd);
+      useJobsStore.getState().addFiles(toAdd);
     }
   }, []);
 

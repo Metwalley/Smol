@@ -10,7 +10,7 @@ function BareJobRow({ jobId }: { jobId: string }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 border-b border-zinc-800 last:border-0">
       <span className="flex-1 truncate font-medium">{job.name}</span>
-      <span className="text-zinc-500 shrink-0">{formatBytesExact(job.sizeBytes)}</span>
+      <span className="text-zinc-500 shrink-0">{formatBytesExact(job.inputBytes)}</span>
       <span className="text-zinc-500 shrink-0 uppercase text-xs tracking-wide">{kindLabel(job.kind)}</span>
     </div>
   );

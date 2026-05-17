@@ -23,18 +23,29 @@ export interface MediaProbe {
 }
 
 export interface Job {
+  // ── Identity ─────────────────────────────────────────────────────────────
   id: string;
-  inputPath: string;
+  inputPath: string;       // absolute filesystem path
+  name: string;            // display name (filename)
   outputPath?: string;
   kind: FileKind;
+  addedAt: number;         // Date.now() when enqueued
+
+  // ── State machine ─────────────────────────────────────────────────────────
   status: JobStatus;
-  progress: number;
-  speed?: string;
-  etaSec?: number;
+  progress: number;        // 0–100 during encoding; 0 at all other stages
+  speed?: string;          // e.g. "2.4x"   — populated during encoding
+  etaSec?: number;         // seconds remaining — populated during encoding
+
+  // ── Sizes ────────────────────────────────────────────────────────────────
   inputBytes: number;
-  outputBytes?: number;
+  estimateBytes?: number;  // pre-job output size estimate (shown in queue row)
+  outputBytes?: number;    // actual output size after encoding completes
+
+  // ── Async data ─────────────────────────────────────────────────────────
   probe?: MediaProbe;
-  thumbnailPath?: string;
+  /** undefined = thumbnail loading/pending; null = no thumbnail; string = cache path */
+  thumbnailPath?: string | null;
   errorMessage?: string;
 }
 

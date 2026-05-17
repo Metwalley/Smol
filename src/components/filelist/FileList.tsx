@@ -7,13 +7,13 @@ import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
 import { kindBadgeColor, kindLabel } from "@/lib/kinds";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllJobIds, useJob, useJobsStore } from "@/store/jobs";
-import type { QueuedFile } from "@/store/jobs";
+import type { Job } from "@/types";
 import type { FileKind } from "@/types";
 import { TypeFilterChips } from "./TypeFilterChips";
 
 // ─── Per-row metadata helpers ─────────────────────────────────────────────────
 
-function probeLabel(job: QueuedFile): string | null {
+function probeLabel(job: Job): string | null {
   const p = job.probe;
   if (!p) return null;
   switch (job.kind) {
@@ -41,10 +41,10 @@ function probeLabel(job: QueuedFile): string | null {
 
 // ─── Thumbnail ────────────────────────────────────────────────────────────────
 
-function Thumbnail({ job }: { job: QueuedFile }) {
+function Thumbnail({ job }: { job: Job }) {
   const thumbPath = job.thumbnailPath;
 
-  // undefined = still probing/loading → animate-pulse shimmer
+  // undefined = still probing/thumbnailing → animate-pulse shimmer
   if (thumbPath === undefined) {
     return (
       <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800">
@@ -53,7 +53,7 @@ function Thumbnail({ job }: { job: QueuedFile }) {
     );
   }
 
-  // string = actual thumbnail path
+  // string = actual thumbnail path (served via asset:// protocol)
   const src = thumbPath ? convertFileSrc(thumbPath) : null;
   return (
     <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800 flex items-center justify-center">
@@ -84,21 +84,25 @@ function Thumbnail({ job }: { job: QueuedFile }) {
 // ─── Single job row ───────────────────────────────────────────────────────────
 
 function JobRow({ jobId }: { jobId: string }) {
-  const job       = useJob(jobId);
-  const removeJob = useJobsStore((s) => s.removeJob);
+  const job = useJob(jobId);
 
   if (!job) return null;
 
-  const isFailed     = job.pipelineError !== undefined;
+  // Status-based display logic
+  const isFailed     = job.status === "failed";
+  const isReady      = job.status === "ready" || job.status === "encoding" ||
+                       job.status === "done";
   const meta         = probeLabel(job);
-  const dirName      = parentDirName(job.path);
+  const dirName      = parentDirName(job.inputPath);
   const displayName  = middleTruncate(job.name, 50);
+
+  // Estimate: shown when ready (or done); "—" otherwise
   const estimateLabel =
-    job.estimateBytes !== undefined
+    isReady && job.estimateBytes !== undefined
       ? `~${formatBytesExact(job.estimateBytes)}`
       : "—";
 
-  // Codec badge: video-only, requires probed videoCodec
+  // Codec badge: video rows only, after probe
   const codecBadge =
     job.kind === "video" && job.probe?.videoCodec
       ? job.probe.videoCodec.toUpperCase()
@@ -119,12 +123,12 @@ function JobRow({ jobId }: { jobId: string }) {
           </span>
           <div className="flex items-center gap-2 text-xs">
             <span className="font-mono text-zinc-600">
-              {formatBytesExact(job.sizeBytes)}
+              {formatBytesExact(job.inputBytes)}
             </span>
             <span className="text-zinc-700">·</span>
             <span
               className="text-red-500 font-medium"
-              title={job.pipelineError}
+              title={job.errorMessage}
             >
               Failed
             </span>
@@ -132,7 +136,7 @@ function JobRow({ jobId }: { jobId: string }) {
         </div>
 
         <button
-          onClick={() => removeJob(jobId)}
+          onClick={() => useJobsStore.getState().removeJob(jobId)}
           className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
           aria-label="Remove file"
         >
@@ -165,7 +169,7 @@ function JobRow({ jobId }: { jobId: string }) {
             </>
           )}
           {/* File size — font-mono for numeric alignment */}
-          <span className="font-mono">{formatBytesExact(job.sizeBytes)}</span>
+          <span className="font-mono">{formatBytesExact(job.inputBytes)}</span>
 
           {/* Probe metadata: duration / dimensions / pages — font-mono */}
           {meta && (
@@ -201,7 +205,7 @@ function JobRow({ jobId }: { jobId: string }) {
 
       {/* Remove button — visible on hover */}
       <button
-        onClick={() => removeJob(jobId)}
+        onClick={() => useJobsStore.getState().removeJob(jobId)}
         className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
         aria-label="Remove file"
       >
@@ -215,7 +219,7 @@ function JobRow({ jobId }: { jobId: string }) {
 
 export function FileList() {
   const jobIds = useAllJobIds();
-  const jobs   = useJobsStore((s) => s.jobs);
+  const jobs   = useJobsStore((s) => s.jobs); // Pattern B: direct state ref; needed for counts/filter
   const [activeFilter, setActiveFilter] = useState<FileKind | "all">("all");
 
   // Counts per kind for filter chips

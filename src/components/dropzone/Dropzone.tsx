@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { fileKindFromPath } from "@/lib/kinds";
 import { getPathInfo } from "@/lib/tauri";
 import { useJobsStore } from "@/store/jobs";
-import type { QueuedFile } from "@/store/jobs";
+import type { NewJobInput } from "@/store/jobs";
 import { EmptyState } from "./EmptyState";
 
 const VIDEO_EXTS = ["mp4", "mov", "mkv", "webm", "avi", "m4v", "wmv", "flv"];
@@ -37,20 +37,17 @@ export function Dropzone({ isDraggingOver }: DropzoneProps) {
     if (!selected) return;
     const paths = Array.isArray(selected) ? selected : [selected];
 
-    const toAdd: Omit<
-      QueuedFile,
-      "addedAt" | "probe" | "thumbnailPath" | "estimateBytes" | "pipelineError"
-    >[] = [];
+    const toAdd: NewJobInput[] = [];
 
     for (const path of paths) {
       const info = await getPathInfo(path);
       if (!info.exists) continue;
       const kind = fileKindFromPath(info.name);
       if (kind === "unsupported") continue;
-      toAdd.push({ id: uuidv4(), path: info.path, name: info.name, kind, sizeBytes: info.size });
+      toAdd.push({ id: uuidv4(), inputPath: info.path, name: info.name, kind, inputBytes: info.size });
     }
     if (toAdd.length > 0) {
-      useJobsStore.getState().addPaths(toAdd);
+      useJobsStore.getState().addFiles(toAdd);
     }
   }
 
