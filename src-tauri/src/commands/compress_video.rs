@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 use tokio::process::Command as TokioCommand;
 
 use crate::encoders::ffmpeg_args::build_video_args;
 use crate::encoders::hw_detect::HwEncodersState;
+use crate::encoders::ffmpeg_sidecar_path;
 use crate::error::AppError;
 use crate::jobs::progress::ProgressEvent;
 
@@ -51,9 +52,12 @@ pub async fn compress_video(
     hw: tauri::State<'_, HwEncodersState>,
     active_jobs: tauri::State<'_, ActiveJobPids>,
 ) -> Result<CompressResult, AppError> {
-    let ffmpeg = ffmpeg_sidecar::paths::ffmpeg_path();
+    let ffmpeg = ffmpeg_sidecar_path();
     if !ffmpeg.exists() {
-        return Err(AppError::Other("FFmpeg binary not found — run scripts/fetch-ffmpeg.mjs".into()));
+        return Err(AppError::Other(format!(
+            "FFmpeg binary not found at {} — run scripts/fetch-ffmpeg.mjs",
+            ffmpeg.display()
+        )));
     }
 
     // Reject output == input to avoid clobbering the source file
@@ -80,7 +84,7 @@ pub async fn compress_video(
     let mut cmd = TokioCommand::new(&ffmpeg);
     cmd.args(&args)
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null()); // suppress verbose FFmpeg stderr
+        .stderr(std::process::Stdio::piped()); // piped so we can include in error messages
 
     // Windows: prevent a black CMD box from flashing on screen
     #[cfg(target_os = "windows")]
@@ -93,6 +97,21 @@ pub async fn compress_video(
     // Register PID for possible cancellation via cancel_job
     let pid = child.id().unwrap_or(0);
     active_jobs.0.lock().unwrap().insert(job_id.clone(), pid);
+
+    // Drain stderr in a background task so the pipe buffer never fills and
+    // deadlocks the process.  We read the last 512 bytes for error messages.
+    let stderr = child.stderr.take().expect("stderr is piped");
+    let stderr_task = tokio::spawn(async move {
+        let mut buf = Vec::new();
+        let mut reader = BufReader::new(stderr);
+        let _ = reader.read_to_end(&mut buf).await;
+        // Keep only the last 512 bytes to avoid huge allocations on verbose output
+        if buf.len() > 512 {
+            let start = buf.len() - 512;
+            buf = buf[start..].to_vec();
+        }
+        String::from_utf8_lossy(&buf).trim().to_string()
+    });
 
     // ── Stream progress from stdout ───────────────────────────────────────────
     let stdout = child.stdout.take().expect("stdout is piped");
@@ -172,14 +191,22 @@ pub async fn compress_video(
         .await
         .map_err(|e| AppError::Other(format!("FFmpeg process error: {e}")))?;
 
+    // Collect stderr output (task already finished since child has exited)
+    let stderr_output = stderr_task.await.unwrap_or_default();
+
     // De-register PID
     active_jobs.0.lock().unwrap().remove(&job_id);
 
     if !status.success() {
         let _ = std::fs::remove_file(&temp_path);
-        return Err(AppError::Other(
-            "Compression failed or was cancelled".into(),
-        ));
+        let msg = if stderr_output.is_empty() {
+            "Compression failed or was cancelled".into()
+        } else {
+            // Surface the last line of FFmpeg's stderr as the error message
+            let last = stderr_output.lines().last().unwrap_or(&stderr_output);
+            format!("FFmpeg: {last}")
+        };
+        return Err(AppError::Other(msg));
     }
 
     // ── Output-larger-than-input guard ────────────────────────────────────────

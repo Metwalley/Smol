@@ -71,7 +71,21 @@ export async function startSqueeze(): Promise<void> {
           result.outputBytes,
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
+        // Tauri commands reject with the serialised AppError object:
+        // { kind: "Other", message: "…" } — extract `.message` when present.
+        let msg: string;
+        if (err instanceof Error) {
+          msg = err.message;
+        } else if (
+          err !== null &&
+          typeof err === "object" &&
+          "message" in err &&
+          typeof (err as Record<string, unknown>).message === "string"
+        ) {
+          msg = (err as Record<string, unknown>).message as string;
+        } else {
+          msg = String(err);
+        }
         useJobsStore.getState().setJobError(jobId, msg);
       }
     }),

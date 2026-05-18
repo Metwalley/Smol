@@ -142,13 +142,16 @@ function JobRow({ jobId }: { jobId: string }) {
               {formatBytesExact(job.inputBytes)}
             </span>
             <span className="text-zinc-700">·</span>
+            <span className="text-red-500 font-medium">Failed</span>
+          </div>
+          {job.errorMessage && (
             <span
-              className="text-red-500 font-medium"
+              className="text-[10px] text-zinc-500 truncate max-w-xs"
               title={job.errorMessage}
             >
-              Failed
+              {job.errorMessage}
             </span>
-          </div>
+          )}
         </div>
 
         <button

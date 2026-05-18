@@ -28,7 +28,7 @@ pub fn probe_hw_encoders() -> HwEncoders {
 }
 
 fn probe_encoder(codec: &str) -> bool {
-    let ffmpeg = ffmpeg_sidecar::paths::ffmpeg_path();
+    let ffmpeg = crate::encoders::ffmpeg_sidecar_path();
     if !ffmpeg.exists() {
         return false;
     }

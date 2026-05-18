@@ -89,7 +89,8 @@
       "Exec(gswin64c)",
       "Exec(signtool)",
       "Exec(make)",
-      "Exec(cmake)"
+      "Exec(cmake)",
+      "Exec(python)"
     ]
   }
 }
