@@ -18,3 +18,4 @@ dist
 # Scratch files
 scripts/optimize_logo.py
 test*.png
+Smol_*.exe

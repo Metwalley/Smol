@@ -38,6 +38,21 @@ jobs:
           node scripts/fetch-ffmpeg.mjs
           node scripts/fetch-ghostscript.mjs
 
+      - name: Verify sidecar binaries
+        shell: pwsh
+        run: |
+          $files = @(
+            "src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/gs-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/gsdll64.dll"
+          )
+          foreach ($f in $files) {
+            if (-not (Test-Path $f)) { throw "Missing sidecar: $f" }
+            $mb = [math]::Round((Get-Item $f).Length / 1MB, 1)
+            Write-Host "OK $f ($mb MB)"
+          }
+
       - name: Build & publish
         uses: tauri-apps/tauri-action@v0
         env:
