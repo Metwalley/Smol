@@ -46,7 +46,7 @@ function PresetCard({
       onClick={onClick}
       disabled={isDisabled}
       className={`
-        relative flex-1 min-w-[140px] p-4 rounded-xl border-2 transition-all text-left
+        relative flex-1 min-w-[140px] p-2.5 rounded-xl border-2 transition-all text-left
         ${isSelected
           ? "border-indigo-500 bg-indigo-950/30 shadow-lg shadow-indigo-500/10"
           : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900"
@@ -67,7 +67,7 @@ function PresetCard({
         </div>
       )}
       <div className="font-semibold text-zinc-100 text-sm mb-1">{preset.label}</div>
-      <div className="text-xs text-zinc-400 mb-2">{preset.subtitle}</div>
+      <div className="text-xs text-zinc-400 mb-1">{preset.subtitle}</div>
       <div className="font-mono text-xs text-indigo-400 font-medium">
         {estimate}
       </div>

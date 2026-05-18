@@ -2,62 +2,59 @@ import { useOutputMode, useFilenamePattern, useSettingsStore } from "@/store/set
 import { useJobCount } from "@/store/jobs";
 import { Zap } from "lucide-react";
 
-const OUTPUT_MODES = [
-  { id: "same-folder" as const, label: "Same folder as source" },
-  { id: "subfolder" as const, label: "Subfolder 'smol/'" },
-  { id: "custom" as const, label: "Choose folder" },
+type OutputMode = "same-folder" | "subfolder" | "custom";
+
+const OUTPUT_MODES: { id: OutputMode; label: string }[] = [
+  { id: "same-folder", label: "Same folder" },
+  { id: "subfolder",   label: "Subfolder 'smol/'" },
+  { id: "custom",      label: "Choose folder" },
 ];
 
 export function OutputControls() {
-  const outputMode = useOutputMode();
+  const outputMode     = useOutputMode();
   const filenamePattern = useFilenamePattern();
-  const jobCount = useJobCount();
+  const jobCount       = useJobCount();
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Output mode */}
-      <div className="flex gap-2">
+    <div className="flex items-center gap-2">
+      {/* Output mode — compact select dropdown */}
+      <select
+        value={outputMode}
+        onChange={(e) =>
+          useSettingsStore.getState().patch({ outputMode: e.target.value as OutputMode })
+        }
+        className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500 cursor-pointer shrink-0"
+      >
         {OUTPUT_MODES.map((mode) => (
-          <button
-            key={mode.id}
-            onClick={() => useSettingsStore.getState().patch({ outputMode: mode.id })}
-            className={`
-              px-3 py-2 rounded-lg text-sm font-medium transition-all
-              ${outputMode === mode.id
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
-              }
-            `}
-          >
+          <option key={mode.id} value={mode.id}>
             {mode.label}
-          </button>
+          </option>
         ))}
-      </div>
+      </select>
 
       {/* Filename pattern */}
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-zinc-400 whitespace-nowrap">Filename pattern</label>
-        <input
-          type="text"
-          value={filenamePattern}
-          onChange={(e) => useSettingsStore.getState().patch({ filenamePattern: e.target.value })}
-          className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
-          placeholder="{name}_smol{ext}"
-        />
-      </div>
+      <input
+        type="text"
+        value={filenamePattern}
+        onChange={(e) =>
+          useSettingsStore.getState().patch({ filenamePattern: e.target.value })
+        }
+        className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1.5 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+        placeholder="{name}_smol{ext}"
+      />
 
-      {/* Squeeze button */}
+      {/* Squeeze button — right side, normal-sized, no w-full */}
       <button
         disabled={jobCount === 0}
         className={`
-          w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all
+          px-5 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-all shrink-0
           ${jobCount === 0
             ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
             : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30"
           }
         `}
       >
-        <Zap className="h-5 w-5" />
+        <Zap className="h-4 w-4" />
         Squeeze
       </button>
     </div>

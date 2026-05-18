@@ -63,7 +63,7 @@ export default function App() {
               <motion.div
                 key="settings"
                 layout
-                className="px-3 pb-3"
+                className="px-3 pb-3 shrink-0"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
