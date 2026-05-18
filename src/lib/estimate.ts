@@ -10,6 +10,39 @@ function defaultVideoBitrateKbps(width?: number, height?: number): number {
   return 600;                          // SD
 }
 
+// CRF encodes at a fixed quality level — output bitrate is bounded below by content
+// complexity, not just the source bitrate. These floors represent the minimum
+// realistic output kbps for a given resolution and CRF preset. Without them,
+// the ratio formula wildly under-estimates already-compressed sources (e.g. a
+// 3100 kbps 1080p file at Extreme would "estimate" 465 kbps, but CRF 35 cannot
+// get that low without destroying the picture). Values calibrated for x264/NVENC.
+function cqFloorKbps(
+  width: number | undefined,
+  height: number | undefined,
+  preset: CompressionPreset,
+): number {
+  const px = (width ?? 0) * (height ?? 0);
+  if (preset === "extreme") {
+    if (px >= 3840 * 2160) return 2500; // 4K  CRF 35
+    if (px >= 1920 * 1080) return 1100; // 1080p CRF 35
+    if (px >= 1280 * 720)  return  550; // 720p  CRF 35
+    return 275;                          // SD    CRF 35
+  }
+  if (preset === "recommended") {
+    if (px >= 3840 * 2160) return 5000; // 4K  CRF 23
+    if (px >= 1920 * 1080) return 2000; // 1080p CRF 23
+    if (px >= 1280 * 720)  return 1000; // 720p  CRF 23
+    return 500;                          // SD    CRF 23
+  }
+  if (preset === "less") {
+    if (px >= 3840 * 2160) return 9000; // 4K  CRF 18
+    if (px >= 1920 * 1080) return 3500; // 1080p CRF 18
+    if (px >= 1280 * 720)  return 1800; // 720p  CRF 18
+    return 900;                          // SD    CRF 18
+  }
+  return 0;
+}
+
 function estimateVideo(
   sizeBytes: number,
   probe: MediaProbe | undefined,
@@ -21,8 +54,12 @@ function estimateVideo(
   const dur = probe?.durationSec;
   const kbps = probe?.bitrateKbps ?? defaultVideoBitrateKbps(probe?.width, probe?.height);
   if (!dur) return Math.round(sizeBytes * ratio);
-  const targetKbps = kbps * ratio;
-  return Math.round(dur * targetKbps * 1000 / 8);
+  // Use the higher of (ratio × source) and the CRF floor — prevents over-optimistic
+  // estimates when the source is already compressed near the CRF quality ceiling.
+  const floor = cqFloorKbps(probe?.width, probe?.height, preset);
+  const targetKbps = Math.max(kbps * ratio, floor);
+  // Cap at source size: we never estimate a larger output than the input.
+  return Math.min(Math.round(dur * targetKbps * 1000 / 8), sizeBytes);
 }
 
 function estimateAudio(

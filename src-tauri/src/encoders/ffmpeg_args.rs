@@ -99,7 +99,7 @@ pub fn build_audio_args(preset: &str, input_ext: &str, input: &str, output: &str
 /// |-------------|-------------|-------------|----------|--------------|
 /// | less        | 18          | slow        | 18       | p7           |
 /// | recommended | 23          | medium      | 23       | p5           |
-/// | extreme     | 30          | fast        | 30       | p4           |
+/// | extreme     | 35          | fast        | 35       | p4           |
 ///
 /// "lossless" is disabled for video in Casual mode (HR-11); if somehow
 /// reached, falls through to the recommended settings.
@@ -119,9 +119,9 @@ fn preset_params(preset: &str) -> PresetParams {
             preset_nvenc: "p7",
         },
         "extreme" => PresetParams {
-            crf_sw: 30,
+            crf_sw: 35,
             preset_sw: "fast",
-            cq_hw: 30,
+            cq_hw: 35,
             preset_nvenc: "p4",
         },
         _ => PresetParams {

@@ -1,16 +1,21 @@
+// Binary (base-2) unit constants — matches Windows Explorer display
+const KiB = 1_024;
+const MiB = 1_024 * 1_024;
+const GiB = 1_024 * 1_024 * 1_024;
+
 export function formatBytes(bytes: number | null | undefined): string {
   if (bytes == null || bytes < 0) return "—";
-  if (bytes < 1_000) return `~${bytes} B`;
-  if (bytes < 1_000_000) return `~${(bytes / 1_000).toFixed(1)} KB`;
-  if (bytes < 100_000_000) return `~${(bytes / 1_000_000).toFixed(1)} MB`;
-  return `~${Math.round(bytes / 1_000_000)} MB`;
+  if (bytes < KiB) return `~${bytes} B`;
+  if (bytes < MiB) return `~${(bytes / KiB).toFixed(1)} KB`;
+  if (bytes < 100 * MiB) return `~${(bytes / MiB).toFixed(1)} MB`;
+  return `~${Math.round(bytes / MiB)} MB`;
 }
 
 export function formatBytesExact(bytes: number): string {
-  if (bytes < 1_000) return `${bytes} B`;
-  if (bytes < 1_000_000) return `${(bytes / 1_000).toFixed(1)} KB`;
-  if (bytes < 1_000_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
-  return `${(bytes / 1_000_000_000).toFixed(2)} GB`;
+  if (bytes < KiB) return `${bytes} B`;
+  if (bytes < MiB) return `${(bytes / KiB).toFixed(1)} KB`;
+  if (bytes < GiB) return `${(bytes / MiB).toFixed(1)} MB`;
+  return `${(bytes / GiB).toFixed(2)} GB`;
 }
 
 export function formatDuration(seconds: number | undefined): string {
