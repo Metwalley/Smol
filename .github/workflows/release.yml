@@ -30,6 +30,9 @@ jobs:
       - name: Install JS deps
         run: pnpm install
 
+      - name: Install Ghostscript
+        run: choco install ghostscript --no-progress -y
+
       - name: Fetch sidecars
         run: |
           node scripts/fetch-ffmpeg.mjs
