@@ -188,15 +188,15 @@ function JobRow({ jobId }: { jobId: string }) {
         </div>
       </div>
 
-      {/* Estimated output size — font-mono for numeric fields */}
-      <span className="font-mono text-xs text-indigo-400 font-medium shrink-0 w-16 text-right">
+      {/* Estimated output size — font-mono + tabular-nums for numeric alignment; whitespace-nowrap prevents "KB" wrapping */}
+      <span className="font-mono text-xs text-indigo-400 font-medium shrink-0 text-right whitespace-nowrap tabular-nums">
         {estimateLabel}
       </span>
 
-      {/* Kind badge */}
+      {/* Kind badge — fixed width so PDF/IMAGE/VIDEO/AUDIO all consume the same horizontal space */}
       <span
         className={cn(
-          "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0",
+          "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0 w-[4.5rem] inline-flex items-center justify-center",
           kindBadgeColor(job.kind)
         )}
       >
