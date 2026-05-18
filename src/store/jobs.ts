@@ -275,7 +275,7 @@ export const useReadyCompressableCount = () =>
   useJobsStore((s) =>
     s.jobIds.reduce((n, id) => {
       const j = s.jobs[id];
-      const compressable = j?.kind === "video" || j?.kind === "audio" || j?.kind === "image";
+      const compressable = j?.kind === "video" || j?.kind === "audio" || j?.kind === "image" || j?.kind === "pdf";
       return n + (compressable && j?.status === "ready" ? 1 : 0);
     }, 0),
   );
