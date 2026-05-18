@@ -7,8 +7,11 @@ dist/
 # Rust / Tauri
 src-tauri/target/
 src-tauri/binaries/*.exe
+src-tauri/binaries/*.dll
 src-tauri/binaries/_extract/
+src-tauri/binaries/_gs-extract/
 src-tauri/binaries/_ffmpeg-essentials.7z
+src-tauri/binaries/_gs-installer.exe
 
 # pnpm
 pnpm-debug.log*
