@@ -112,12 +112,12 @@ export function QueueTotalBanner() {
       >
         <span className="font-medium text-zinc-300">Estimated total</span>
         <span className="text-zinc-600">·</span>
-        <span className="font-mono">{formatBytes(totalInput)}</span>
+        <span className="font-mono">{formatBytesExact(totalInput)}</span>
         {allReady && (
           <>
             <span className="text-zinc-600">→</span>
             <span className="font-mono text-indigo-400 font-medium">
-              ~{formatBytes(totalEstimated)}
+              {formatBytes(totalEstimated)}
             </span>
             {savedPct !== undefined && savedPct > 0 && (
               <>
