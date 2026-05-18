@@ -90,7 +90,8 @@
       "Exec(signtool)",
       "Exec(make)",
       "Exec(cmake)",
-      "Exec(python)"
+      "Exec(python)",
+      "Exec(New-Item)"
     ]
   }
 }

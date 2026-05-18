@@ -1,7 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 import { useJobsStore } from "@/store/jobs";
 import { useSettingsStore } from "@/store/settings";
-import { compressAudio, compressImage, compressVideo } from "@/lib/tauri";
+import { compressAudio, compressImage, compressPdf, compressVideo } from "@/lib/tauri";
 import type { VideoProgressEvent } from "@/lib/tauri";
 import { buildOutputPath } from "@/lib/outputPath";
 
@@ -40,12 +40,13 @@ export async function startSqueeze(): Promise<void> {
   const { preset, outputMode, filenamePattern, customOutputDir } =
     useSettingsStore.getState();
 
-  // Collect ready video + audio + image jobs
+  // Collect ready video + audio + image + pdf jobs
   const readyIds = jobIds.filter(
     (id) =>
       (jobs[id]?.kind === "video" ||
         jobs[id]?.kind === "audio" ||
-        jobs[id]?.kind === "image") &&
+        jobs[id]?.kind === "image" ||
+        jobs[id]?.kind === "pdf") &&
       jobs[id]?.status === "ready",
   );
 
@@ -84,6 +85,7 @@ export async function startSqueeze(): Promise<void> {
         const compressFn =
           job.kind === "audio" ? compressAudio :
           job.kind === "image" ? compressImage :
+          job.kind === "pdf"   ? compressPdf   :
           compressVideo;
         const result = await compressFn(
           jobId,

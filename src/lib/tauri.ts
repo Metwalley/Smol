@@ -132,6 +132,30 @@ export const compressAudio = (
     onProgress,
   });
 
+/**
+ * Compress a single PDF file via the Ghostscript sidecar.
+ * Identical channel/result contract as compressVideo/compressAudio/compressImage.
+ * Emits a single 100% ProgressEvent when Ghostscript exits.
+ * If the compressed file is not smaller than the original, the original is kept
+ * and CompressResult.outputLarger will be true.
+ */
+export const compressPdf = (
+  jobId: string,
+  inputPath: string,
+  outputPath: string,
+  preset: string,
+  durationSec: number | null,
+  onProgress: Channel<VideoProgressEvent>,
+) =>
+  invoke<CompressResult>("compress_pdf", {
+    jobId,
+    inputPath,
+    outputPath,
+    preset,
+    durationSec,
+    onProgress,
+  });
+
 /** Open Windows Explorer with the given file highlighted in its parent folder. */
 export const revealInExplorer = (path: string) =>
   invoke<void>("reveal_in_explorer", { path });

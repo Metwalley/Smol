@@ -13,6 +13,7 @@ fn main() {
     // copy them during `cargo check` / `tauri dev`, so we do it here.
     copy_sidecar("ffmpeg", &target);
     copy_sidecar("ffprobe", &target);
+    copy_sidecar("gs", &target);
 
     tauri_build::build()
 }
