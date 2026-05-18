@@ -1,4 +1,3 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBytesExact, middleTruncate, parentDirName, formatEta, probeLabel } from "@/lib/format";
@@ -8,37 +7,7 @@ import { usePreset } from "@/store/settings";
 import { estimateOutputBytes } from "@/lib/estimate";
 import { cancelJob } from "@/lib/tauri";
 import { DoneCard } from "./DoneCard";
-import type { Job } from "@/types";
-
-// ── Thumbnail ─────────────────────────────────────────────────────────────────
-
-export function Thumbnail({ job }: { job: Job }) {
-  const thumbPath = job.thumbnailPath;
-  if (thumbPath === undefined) {
-    return (
-      <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800">
-        <div className="w-full h-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 animate-pulse" />
-      </div>
-    );
-  }
-  const src = thumbPath ? convertFileSrc(thumbPath) : null;
-  return (
-    <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden bg-zinc-800 flex items-center justify-center">
-      {src ? (
-        <img
-          src={src}
-          alt=""
-          className="w-full h-full object-cover"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-      ) : (
-        <span className={cn("text-xs font-bold px-1.5 py-0.5 rounded", kindBadgeColor(job.kind))}>
-          {kindLabel(job.kind).toUpperCase().slice(0, 3)}
-        </span>
-      )}
-    </div>
-  );
-}
+import { Thumbnail } from "./Thumbnail";
 
 // ── Job row ───────────────────────────────────────────────────────────────────
 

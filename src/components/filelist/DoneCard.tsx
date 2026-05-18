@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FolderSearch } from "lucide-react";
 import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
 import { revealInExplorer } from "@/lib/tauri";
+import { Thumbnail } from "./Thumbnail";
 import type { Job } from "@/types";
 
 // ── Animated SVG checkmark ────────────────────────────────────────────────────
@@ -87,6 +88,8 @@ export function DoneCard({ job }: { job: Job }) {
       transition={{ duration: 0.2 }}
       className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-zinc-900/30 border border-emerald-900/25 group"
     >
+      {/* Thumbnail — slightly smaller than active rows to match compact height */}
+      <Thumbnail job={job} size="sm" />
       <AnimatedCheckmark />
 
       {/* Name + parent directory */}
