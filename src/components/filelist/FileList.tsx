@@ -7,6 +7,8 @@ import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
 import { kindBadgeColor, kindLabel } from "@/lib/kinds";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllJobIds, useJob, useJobsStore } from "@/store/jobs";
+import { usePreset } from "@/store/settings";
+import { estimateOutputBytes } from "@/lib/estimate";
 import type { Job } from "@/types";
 import type { FileKind } from "@/types";
 import { TypeFilterChips } from "./TypeFilterChips";
@@ -85,6 +87,7 @@ function Thumbnail({ job }: { job: Job }) {
 
 function JobRow({ jobId }: { jobId: string }) {
   const job = useJob(jobId);
+  const preset = usePreset();
 
   if (!job) return null;
 
@@ -96,11 +99,16 @@ function JobRow({ jobId }: { jobId: string }) {
   const dirName      = parentDirName(job.inputPath);
   const displayName  = middleTruncate(job.name, 50);
 
-  // Estimate: shown when ready (or done); "—" otherwise
-  const estimateLabel =
-    isReady && job.estimateBytes !== undefined
-      ? `~${formatBytesExact(job.estimateBytes)}`
-      : "—";
+  // Estimate: compute dynamically based on selected preset (HR-15)
+  const estimateBytes = isReady
+    ? estimateOutputBytes(
+        { kind: job.kind, sizeBytes: job.inputBytes, probe: job.probe },
+        preset,
+      )
+    : undefined;
+  const estimateLabel = estimateBytes !== undefined
+    ? `~${formatBytesExact(estimateBytes)}`
+    : "—";
 
   // Codec badge: video rows only, after probe
   const codecBadge =

@@ -155,6 +155,8 @@ export const useAllJobIds    = () => useJobsStore(useShallow((s) => s.jobIds));
 // useJob: Pattern B — direct state reference; re-renders only when that job changes
 export const useJob          = (id: string) => useJobsStore((s) => s.jobs[id]);
 export const useJobCount     = () => useJobsStore((s) => s.jobIds.length);
+// useJobs: direct state reference to the jobs record (HR-7 compliant - returns stored object)
+export const useJobs         = () => useJobsStore((s) => s.jobs);
 
 // ── Per-job field selectors (all primitives or direct state refs) ─────────────
 export const useJobStatus    = (id: string) => useJobsStore((s) => s.jobs[id]?.status);
@@ -199,3 +201,10 @@ export const useTotalEstimatedBytes = () =>
     for (const id of s.jobIds) t += s.jobs[id]?.estimateBytes ?? 0;
     return t;
   });
+
+/**
+ * Returns true if any job in the queue has kind === "video".
+ * Used to disable the Lossless preset (HR-11).
+ */
+export const useHasAnyVideo = () =>
+  useJobsStore((s) => s.jobIds.some((id) => s.jobs[id]?.kind === "video"));

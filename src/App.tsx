@@ -4,6 +4,9 @@ import { Titlebar } from "@/components/titlebar/Titlebar";
 import { Dropzone } from "@/components/dropzone/Dropzone";
 import { FileList } from "@/components/filelist/FileList";
 import { QueueTotalBanner } from "@/components/filelist/QueueTotalBanner";
+import { PresetCards } from "@/components/settings/PresetCards";
+import { OutputControls } from "@/components/settings/OutputControls";
+import { AdvancedDrawer } from "@/components/settings/AdvancedDrawer";
 import { useMaximized } from "@/hooks/useMaximized";
 import { useDragDrop } from "@/hooks/useDragDrop";
 import { useJobsStore } from "@/store/jobs";
@@ -53,8 +56,29 @@ export default function App() {
 
           {/* Banner: shrink-0, hidden when queue empty */}
           <QueueTotalBanner />
+
+          {/* Preset cards and output controls: shown when queue has files */}
+          <AnimatePresence>
+            {jobCount > 0 && (
+              <motion.div
+                key="settings"
+                layout
+                className="px-3 pb-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PresetCards />
+                <OutputControls />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </LayoutGroup>
+
+      {/* Advanced drawer */}
+      <AdvancedDrawer />
 
       {/* Hardcode theme="dark" — never rely on system theme detection (bug #2) */}
       <Toaster theme="dark" position="bottom-right" closeButton />

@@ -68,3 +68,23 @@ export function estimateOutputBytes(
     default:      return undefined;
   }
 }
+
+/**
+ * Compute the total estimated output size for all jobs in the queue for a given preset.
+ * Returns undefined if any job's estimate is undefined (all must be known for a total).
+ */
+export function getPresetEstimate(
+  jobs: Record<string, { kind: FileKind; inputBytes: number; probe?: MediaProbe }>,
+  preset: CompressionPreset,
+): number | undefined {
+  let total = 0;
+  for (const job of Object.values(jobs)) {
+    const est = estimateOutputBytes(
+      { kind: job.kind, sizeBytes: job.inputBytes, probe: job.probe },
+      preset,
+    );
+    if (est === undefined) return undefined;
+    total += est;
+  }
+  return total;
+}

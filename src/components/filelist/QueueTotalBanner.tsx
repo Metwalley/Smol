@@ -1,24 +1,46 @@
 import {
   useJobCount,
   useTotalInputBytes,
-  useAllEstimatesReady,
-  useTotalEstimatedBytes,
+  useAllJobIds,
+  useJobs,
 } from "@/store/jobs";
+import { usePreset } from "@/store/settings";
 import { formatBytes } from "@/lib/format";
+import { estimateOutputBytes } from "@/lib/estimate";
 
 /**
  * HR-7 clean: every selector returns a primitive.
  * No Object.values / array construction inside any useJobsStore call.
  */
 export function QueueTotalBanner() {
-  const jobCount       = useJobCount();            // number
-  const totalInput     = useTotalInputBytes();     // number
-  const allReady       = useAllEstimatesReady();   // boolean
-  const totalEstimated = useTotalEstimatedBytes(); // number (0 until ready)
+  const jobCount = useJobCount(); // number
+  const totalInput = useTotalInputBytes(); // number
+  const preset = usePreset(); // CompressionPreset
+  const jobIds = useAllJobIds(); // string[] (useShallow)
+  const jobs = useJobs(); // Record<string, Job> (direct state ref)
 
   if (jobCount === 0) return null;
 
-  const saved    = allReady ? totalInput - totalEstimated : undefined;
+  // Compute total estimate on the fly for the selected preset
+  let totalEstimated = 0;
+  let allReady = true;
+  for (const id of jobIds) {
+    const job = jobs[id];
+    if (!job) continue;
+    // Skip failed/cancelled jobs
+    if (job.status === "failed" || job.status === "cancelled") continue;
+    const est = estimateOutputBytes(
+      { kind: job.kind, sizeBytes: job.inputBytes, probe: job.probe },
+      preset,
+    );
+    if (est === undefined) {
+      allReady = false;
+      break;
+    }
+    totalEstimated += est;
+  }
+
+  const saved = allReady ? totalInput - totalEstimated : undefined;
   const savedPct =
     saved !== undefined && totalInput > 0
       ? Math.round((saved / totalInput) * 100)
