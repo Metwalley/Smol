@@ -1,6 +1,7 @@
 import { useOutputMode, useFilenamePattern, useSettingsStore } from "@/store/settings";
-import { useJobCount } from "@/store/jobs";
-import { Zap } from "lucide-react";
+import { useIsSqueezing, useReadyVideoCount } from "@/store/jobs";
+import { startSqueeze } from "@/hooks/useCompression";
+import { Zap, Loader2 } from "lucide-react";
 
 type OutputMode = "same-folder" | "subfolder" | "custom";
 
@@ -11,9 +12,13 @@ const OUTPUT_MODES: { id: OutputMode; label: string }[] = [
 ];
 
 export function OutputControls() {
-  const outputMode     = useOutputMode();
+  const outputMode      = useOutputMode();
   const filenamePattern = useFilenamePattern();
-  const jobCount       = useJobCount();
+  const isSqueezing     = useIsSqueezing();
+  const readyVideoCount = useReadyVideoCount();
+
+  // Button is active only when there are ready video jobs and we're not already compressing
+  const canSqueeze = readyVideoCount > 0 && !isSqueezing;
 
   return (
     <div className="flex items-center gap-2">
@@ -45,17 +50,21 @@ export function OutputControls() {
 
       {/* Squeeze button — right side, normal-sized, no w-full */}
       <button
-        disabled={jobCount === 0}
+        disabled={!canSqueeze}
+        onClick={() => { void startSqueeze(); }}
         className={`
           px-5 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-all shrink-0
-          ${jobCount === 0
+          ${!canSqueeze
             ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
             : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30"
           }
         `}
       >
-        <Zap className="h-4 w-4" />
-        Squeeze
+        {isSqueezing
+          ? <Loader2 className="h-4 w-4 animate-spin" />
+          : <Zap className="h-4 w-4" />
+        }
+        {isSqueezing ? "Squeezing…" : "Squeeze"}
       </button>
     </div>
   );

@@ -1,5 +1,26 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, Channel } from "@tauri-apps/api/core";
 import type { MediaProbe } from "@/types";
+
+// ── Phase 6: video compression types ─────────────────────────────────────────
+
+/** Streamed progress event from the compress_video Rust command. */
+export interface VideoProgressEvent {
+  jobId: string;
+  fraction: number;
+  fps?: number;
+  /** e.g. "2.4x" */
+  speed?: string;
+  etaSec?: number;
+  currentBytes?: number;
+}
+
+/** Final result returned by compress_video after FFmpeg exits. */
+export interface CompressResult {
+  outputPath: string;
+  outputBytes: number;
+  /** True when compressed size ≥ original; original was kept, outputPath === inputPath. */
+  outputLarger: boolean;
+}
 
 // Mirrors PathInfo in src-tauri/src/fs_bridge.rs
 export interface PathInfo {
@@ -34,3 +55,32 @@ export const generateThumbnail = (
   kind: string,
   duration_sec: number | null,
 ) => invoke<string | null>("generate_thumbnail", { path, kind, duration_sec });
+
+// ── Phase 6: compression commands ────────────────────────────────────────────
+
+/**
+ * Compress a single video file.
+ * Progress events are streamed via the `onProgress` channel.
+ * Returns a CompressResult when FFmpeg exits (success or output-larger skip).
+ * Throws (rejects) on FFmpeg failure or cancellation.
+ */
+export const compressVideo = (
+  jobId: string,
+  inputPath: string,
+  outputPath: string,
+  preset: string,
+  durationSec: number | null,
+  onProgress: Channel<VideoProgressEvent>,
+) =>
+  invoke<CompressResult>("compress_video", {
+    jobId,
+    inputPath,
+    outputPath,
+    preset,
+    durationSec,
+    onProgress,
+  });
+
+/** Kill a running FFmpeg process and clean up the partial output file. */
+export const cancelJob = (jobId: string) =>
+  invoke<void>("cancel_job", { jobId });

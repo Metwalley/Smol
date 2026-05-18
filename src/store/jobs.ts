@@ -30,7 +30,14 @@ interface JobsState {
   updateJobThumbnail: (id: string, thumbnailPath: string | null) => void;
   /** Mark a job as failed and record the error message. */
   setJobError: (id: string, message: string) => void;
-  // Phase 6 will add: updateJobProgress, setJobOutput
+  // ── Phase 6: compression progress ────────────────────────────────────────
+  /** Update live encoding progress — called from the Channel onmessage handler. */
+  updateJobProgress: (
+    id: string,
+    patch: { progress: number; speed?: string; etaSec?: number; outputBytes?: number },
+  ) => void;
+  /** Mark a job as done and record its final output path + size. */
+  setJobOutput: (id: string, outputPath: string, outputBytes?: number) => void;
 }
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -87,6 +94,42 @@ export const useJobsStore = create<JobsState>((set, get) => ({
     set((s) =>
       s.jobs[id]
         ? { jobs: { ...s.jobs, [id]: { ...s.jobs[id], status: "failed", errorMessage: message } } }
+        : s
+    ),
+
+  updateJobProgress: (id, patch) =>
+    set((s) =>
+      s.jobs[id]
+        ? {
+            jobs: {
+              ...s.jobs,
+              [id]: {
+                ...s.jobs[id],
+                progress: patch.progress,
+                speed: patch.speed,
+                etaSec: patch.etaSec,
+                outputBytes: patch.outputBytes,
+              },
+            },
+          }
+        : s
+    ),
+
+  setJobOutput: (id, outputPath, outputBytes) =>
+    set((s) =>
+      s.jobs[id]
+        ? {
+            jobs: {
+              ...s.jobs,
+              [id]: {
+                ...s.jobs[id],
+                status: "done",
+                outputPath,
+                outputBytes: outputBytes ?? s.jobs[id].outputBytes,
+                progress: 100,
+              },
+            },
+          }
         : s
     ),
 }));
@@ -208,3 +251,18 @@ export const useTotalEstimatedBytes = () =>
  */
 export const useHasAnyVideo = () =>
   useJobsStore((s) => s.jobIds.some((id) => s.jobs[id]?.kind === "video"));
+
+// ── Phase 6 selectors (HR-7 compliant — return primitives) ───────────────────
+
+/** True while at least one video job has status === "encoding". */
+export const useIsSqueezing = () =>
+  useJobsStore((s) => s.jobIds.some((id) => s.jobs[id]?.status === "encoding"));
+
+/** Count of video jobs that are ready to compress. Drives the Squeeze button. */
+export const useReadyVideoCount = () =>
+  useJobsStore((s) =>
+    s.jobIds.reduce((n, id) => {
+      const j = s.jobs[id];
+      return n + (j?.kind === "video" && j?.status === "ready" ? 1 : 0);
+    }, 0),
+  );

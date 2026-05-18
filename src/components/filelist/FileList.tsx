@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { X } from "lucide-react";
+import { X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
@@ -9,9 +9,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllJobIds, useJob, useJobsStore } from "@/store/jobs";
 import { usePreset } from "@/store/settings";
 import { estimateOutputBytes } from "@/lib/estimate";
+import { cancelJob } from "@/lib/tauri";
 import type { Job } from "@/types";
 import type { FileKind } from "@/types";
 import { TypeFilterChips } from "./TypeFilterChips";
+
+function formatEta(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
 
 // ─── Per-row metadata helpers ─────────────────────────────────────────────────
 
@@ -154,12 +162,23 @@ function JobRow({ jobId }: { jobId: string }) {
     );
   }
 
+  const isEncoding = job.status === "encoding";
+  const isDone     = job.status === "done";
+
+  // Right-column label: actual size when done, estimate otherwise
+  const rightLabel = isDone && job.outputBytes
+    ? formatBytesExact(job.outputBytes)
+    : estimateLabel;
+  const rightColor = isDone
+    ? "text-emerald-400"
+    : "text-indigo-400";
+
   // ── Normal state ──────────────────────────────────────────────────────────
   return (
-    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/50 hover:bg-zinc-900 transition-colors group">
+    <div className="relative flex items-start gap-3 px-3 py-2 rounded-lg bg-zinc-900/50 hover:bg-zinc-900 transition-colors group">
       <Thumbnail job={job} />
 
-      {/* File info: name + metadata row */}
+      {/* File info: name + metadata + optional progress */}
       <div className="flex flex-col flex-1 min-w-0 gap-0.5">
         <span
           className="text-sm font-medium text-zinc-100 truncate"
@@ -194,28 +213,60 @@ function JobRow({ jobId }: { jobId: string }) {
             </span>
           )}
         </div>
+
+        {/* ── Progress bar (encoding) ─────────────────────────────────── */}
+        {isEncoding && (
+          <div className="mt-1 flex flex-col gap-0.5">
+            <div className="h-1 w-full rounded-full bg-zinc-800 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-[width] duration-300"
+                style={{ width: `${job.progress ?? 0}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono tabular-nums">
+              <span>{job.progress ?? 0}%</span>
+              {job.speed && <span>{job.speed}</span>}
+              {job.etaSec !== undefined && job.etaSec > 0 && (
+                <span>ETA {formatEta(job.etaSec)}</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Estimated output size — font-mono + tabular-nums for numeric alignment; whitespace-nowrap prevents "KB" wrapping */}
-      <span className="font-mono text-xs text-indigo-400 font-medium shrink-0 text-right whitespace-nowrap tabular-nums">
-        {estimateLabel}
-      </span>
+      {/* Right column: size estimate / actual / done icon */}
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        {isDone ? (
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+        ) : null}
+        <span className={cn(
+          "font-mono text-xs font-medium whitespace-nowrap tabular-nums",
+          rightColor,
+        )}>
+          {rightLabel}
+        </span>
+      </div>
 
       {/* Kind badge — fixed width so PDF/IMAGE/VIDEO/AUDIO all consume the same horizontal space */}
       <span
         className={cn(
-          "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0 w-[4.5rem] inline-flex items-center justify-center",
+          "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0 w-[4.5rem] inline-flex items-center justify-center self-start mt-0.5",
           kindBadgeColor(job.kind)
         )}
       >
         {kindLabel(job.kind)}
       </span>
 
-      {/* Remove button — visible on hover */}
+      {/* Remove/cancel button — visible on hover; cancels FFmpeg if encoding */}
       <button
-        onClick={() => useJobsStore.getState().removeJob(jobId)}
-        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
-        aria-label="Remove file"
+        onClick={async () => {
+          if (isEncoding) {
+            await cancelJob(jobId).catch(() => {});
+          }
+          useJobsStore.getState().removeJob(jobId);
+        }}
+        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 self-start"
+        aria-label={isEncoding ? "Cancel compression" : "Remove file"}
       >
         <X className="h-3.5 w-3.5" />
       </button>
