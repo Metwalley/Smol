@@ -1,24 +1,20 @@
-# Node
-node_modules/
-dist/
-.DS_Store
-*.log
+# JS
+node_modules
 
-# Rust / Tauri
-src-tauri/target/
+# Rust build output
+src-tauri/target
+
+# Sidecar binaries (fetched at build time — not committed)
 src-tauri/binaries/*.exe
 src-tauri/binaries/*.dll
 src-tauri/binaries/_extract/
-src-tauri/binaries/_gs-extract/
-src-tauri/binaries/_ffmpeg-essentials.7z
-src-tauri/binaries/_gs-installer.exe
 
-# pnpm
-pnpm-debug.log*
+# Vite build output
+dist
 
-# IDE
-.vscode/settings.json
-.idea/
+# Local tool config (not project config)
+.devin/config.local.json
 
-# OS
-Thumbs.db
+# Scratch files
+scripts/optimize_logo.py
+test*.png
