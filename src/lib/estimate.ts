@@ -68,8 +68,9 @@ function estimateAudio(
   preset: CompressionPreset,
 ): number | undefined {
   if (preset === "lossless") return sizeBytes;
-  const targetKbps: Record<string, number> = { less: 192, recommended: 128, extreme: 64 };
-  const kbps = targetKbps[preset] ?? 128;
+  // Must match build_audio_args() bitrates in ffmpeg_args.rs exactly.
+  const targetKbps: Record<string, number> = { less: 320, recommended: 192, extreme: 96 };
+  const kbps = targetKbps[preset] ?? 192;
   const dur = probe?.durationSec;
   if (!dur) return undefined;
   return Math.min(Math.round(dur * kbps * 1000 / 8), sizeBytes);
