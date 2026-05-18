@@ -8,6 +8,7 @@ mod thumbs;
 
 use commands::compress_video::{compress_video, cancel_job, ActiveJobPids};
 use commands::compress_audio::compress_audio;
+use commands::compress_image::compress_image;
 use encoders::hw_detect::{probe_hw_encoders, HwEncodersState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,6 +30,7 @@ pub fn run() {
             thumbs::generate_thumbnail,
             compress_video,
             compress_audio,
+            compress_image,
             cancel_job,
         ])
         .run(tauri::generate_context!())

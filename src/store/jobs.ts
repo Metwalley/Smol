@@ -266,3 +266,16 @@ export const useReadyVideoCount = () =>
       return n + (j?.kind === "video" && j?.status === "ready" ? 1 : 0);
     }, 0),
   );
+
+/**
+ * Count of all jobs (video + audio + image) that are ready to compress.
+ * Drives the Squeeze button — replaces the video-only useReadyVideoCount.
+ */
+export const useReadyCompressableCount = () =>
+  useJobsStore((s) =>
+    s.jobIds.reduce((n, id) => {
+      const j = s.jobs[id];
+      const compressable = j?.kind === "video" || j?.kind === "audio" || j?.kind === "image";
+      return n + (compressable && j?.status === "ready" ? 1 : 0);
+    }, 0),
+  );

@@ -1,5 +1,5 @@
 import { useOutputMode, useFilenamePattern, useSettingsStore } from "@/store/settings";
-import { useIsSqueezing, useReadyVideoCount } from "@/store/jobs";
+import { useIsSqueezing, useReadyCompressableCount } from "@/store/jobs";
 import { startSqueeze } from "@/hooks/useCompression";
 import { Zap, Loader2 } from "lucide-react";
 
@@ -15,10 +15,10 @@ export function OutputControls() {
   const outputMode      = useOutputMode();
   const filenamePattern = useFilenamePattern();
   const isSqueezing     = useIsSqueezing();
-  const readyVideoCount = useReadyVideoCount();
+  const readyCompressableCount = useReadyCompressableCount();
 
-  // Button is active only when there are ready video jobs and we're not already compressing
-  const canSqueeze = readyVideoCount > 0 && !isSqueezing;
+  // Button is active when there are any ready video/audio/image jobs and we're not already compressing
+  const canSqueeze = readyCompressableCount > 0 && !isSqueezing;
 
   return (
     <div className="flex items-center gap-2">

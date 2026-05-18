@@ -86,6 +86,30 @@ export const cancelJob = (jobId: string) =>
   invoke<void>("cancel_job", { jobId });
 
 /**
+ * Compress a single image file (JPEG/PNG/WebP natively in Rust).
+ * Identical channel/result contract as compressVideo/compressAudio.
+ * The Rust side may change the output extension (e.g. BMP → jpg);
+ * the returned CompressResult.outputPath reflects the actual file written.
+ * Unsupported formats (AVIF, HEIC, GIF) are returned with outputLarger: true.
+ */
+export const compressImage = (
+  jobId: string,
+  inputPath: string,
+  outputPath: string,
+  preset: string,
+  durationSec: number | null,
+  onProgress: Channel<VideoProgressEvent>,
+) =>
+  invoke<CompressResult>("compress_image", {
+    jobId,
+    inputPath,
+    outputPath,
+    preset,
+    durationSec,
+    onProgress,
+  });
+
+/**
  * Compress a single audio file.
  * Identical channel/result contract as compressVideo.
  * The Rust side may change the output extension (e.g. WAV → mp3);

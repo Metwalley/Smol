@@ -10,7 +10,7 @@ export function Titlebar() {
       className="flex items-center justify-between h-10 px-4 select-none shrink-0"
     >
       <div className="flex items-center">
-        <img src="/logo.svg" className="h-5 w-5 mr-2" alt="Smol" />
+        <img src="/logo.png" className="h-6 w-auto mr-2" alt="Smol" draggable={false} />
         <span className="text-sm font-semibold text-zinc-200">Smol</span>
       </div>
       {/* System Min/Max/Close controls are drawn by Windows at the right edge.
