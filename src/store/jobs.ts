@@ -279,3 +279,52 @@ export const useReadyCompressableCount = () =>
       return n + (compressable && j?.status === "ready" ? 1 : 0);
     }, 0),
   );
+
+// ── Phase 10 selectors ────────────────────────────────────────────────────────
+
+/**
+ * True when the queue has ≥ 1 active job and every active (non-failed /
+ * non-cancelled) job has status === "done".  Drives the Batch Complete banner.
+ */
+export const useAllJobsDone = () =>
+  useJobsStore((s) => {
+    if (s.jobIds.length === 0) return false;
+    let hasActive = false;
+    for (const id of s.jobIds) {
+      const job = s.jobs[id];
+      if (!job) continue;
+      if (job.status === "failed" || job.status === "cancelled") continue;
+      hasActive = true;
+      if (job.status !== "done") return false;
+    }
+    return hasActive;
+  });
+
+/** Sum of outputBytes for every job that has a recorded output size. */
+export const useTotalOutputBytes = () =>
+  useJobsStore((s) =>
+    s.jobIds.reduce((t, id) => t + (s.jobs[id]?.outputBytes ?? 0), 0),
+  );
+
+/** Count of active (non-failed / non-cancelled) jobs with status === "done". */
+export const useDoneJobCount = () =>
+  useJobsStore((s) =>
+    s.jobIds.reduce((n, id) => {
+      const job = s.jobs[id];
+      if (!job || job.status === "failed" || job.status === "cancelled") return n;
+      return n + (job.status === "done" ? 1 : 0);
+    }, 0),
+  );
+
+/**
+ * The outputPath of the first job that has one.
+ * Used by the Batch Complete banner's "Open output folder" button.
+ */
+export const useFirstOutputPath = () =>
+  useJobsStore((s) => {
+    for (const id of s.jobIds) {
+      const path = s.jobs[id]?.outputPath;
+      if (path) return path;
+    }
+    return undefined;
+  });

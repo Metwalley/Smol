@@ -53,3 +53,40 @@ export function parentDirName(path: string): string {
   // parts[-2] = parent dir, parts[-1] = filename
   return parts.length >= 2 ? (parts[parts.length - 2] ?? "") : "";
 }
+
+/** Format seconds remaining as a compact ETA string, e.g. "1m 23s". */
+export function formatEta(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
+/**
+ * Returns a short human-readable metadata label for a job's probe result.
+ * Videos/audio → duration; images → dimensions; PDFs → page count.
+ */
+export function probeLabel(probe: import("@/types").MediaProbe | undefined, kind: import("@/types").FileKind): string | null {
+  if (!probe) return null;
+  switch (kind) {
+    case "video":
+    case "audio": {
+      if (!probe.durationSec) return null;
+      const s = Math.round(probe.durationSec);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      return h > 0
+        ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
+        : `${m}:${String(sec).padStart(2, "0")}`;
+    }
+    case "image":
+      if (probe.width && probe.height) return `${probe.width}×${probe.height}`;
+      return null;
+    case "pdf":
+      if (probe.pageCount) return `${probe.pageCount} page${probe.pageCount !== 1 ? "s" : ""}`;
+      return null;
+    default:
+      return null;
+  }
+}
