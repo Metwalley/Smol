@@ -72,8 +72,21 @@ pub async fn compress_video(
         std::fs::create_dir_all(parent)?;
     }
 
-    // Write to a .part temp file; rename to final on success
-    let temp_path = format!("{}.part", output_path);
+    // Write to a temp file whose extension matches the final output so FFmpeg
+    // can auto-detect the container format.  Inserting ".part" *before* the
+    // extension (e.g. "out.part.mp4") avoids the "Invalid argument / unknown
+    // format" error that occurs when the temp file ends in ".mp4.part".
+    let temp_path = {
+        let p = std::path::Path::new(&output_path);
+        let parent = p.parent().unwrap_or(std::path::Path::new("."));
+        let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
+        let ext  = p.extension().and_then(|e| e.to_str())
+                    .map(|e| format!(".{e}"))
+                    .unwrap_or_default();
+        parent.join(format!("{stem}.part{ext}"))
+              .to_string_lossy()
+              .into_owned()
+    };
 
     let input_bytes = std::fs::metadata(&input_path)?.len();
 
