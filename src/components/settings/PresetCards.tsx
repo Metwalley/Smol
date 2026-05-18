@@ -84,7 +84,7 @@ export function PresetCards() {
   // Compute estimates for all presets
   const estimates = PRESETS.map((p) => {
     const estBytes = jobCount > 0 ? getPresetEstimate(jobs, p.id) : undefined;
-    return estBytes !== undefined ? `~${formatBytes(estBytes)}` : "—";
+    return estBytes !== undefined ? formatBytes(estBytes) : "—";
   });
 
   return (
