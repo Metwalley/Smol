@@ -115,25 +115,33 @@ async function main() {
   await pipeline(Readable.fromWeb(res.body), createWriteStream(installerPath));
   console.log('   Download complete.');
 
-  // ── Step 4: Run installer silently via PowerShell ─────────────────────────
-  // PowerShell Start-Process with -Wait properly tracks the elevated child
-  // process that NSIS forks (plain spawnSync loses the handle after UAC).
-  // -Verb RunAs triggers UAC if needed — the user must approve.
-  console.log('\n↓  Running silent installer (approve UAC if prompted)…');
+  // ── Step 4: Run installer silently ───────────────────────────────────────
+  // CI runners (GitHub Actions) already run as Administrator — invoke the
+  // NSIS installer directly. On a user machine, UAC elevation is required, so
+  // fall back to PowerShell Start-Process -Verb RunAs which triggers the prompt.
+  const isCI = Boolean(process.env.CI);
+  console.log(`\n↓  Running silent installer${isCI ? ' (CI mode, no UAC)' : ' (approve UAC if prompted)'}…`);
 
-  const escapedPath = installerPath.replace(/'/g, "''");   // PS single-quote escape
-  const psCmd = `Start-Process -FilePath '${escapedPath}' -ArgumentList '/S' -Wait -Verb RunAs`;
-
-  const result = spawnSync(
-    'powershell.exe',
-    ['-NoProfile', '-Command', psCmd],
-    { stdio: 'inherit', timeout: 300_000 },
-  );
+  let result;
+  if (isCI) {
+    // Direct invocation — works because CI runner is already elevated.
+    result = spawnSync(installerPath, ['/S'], { stdio: 'inherit', timeout: 300_000 });
+  } else {
+    // PowerShell Start-Process with -Wait properly tracks the elevated child
+    // process that NSIS forks (plain spawnSync loses the handle after UAC).
+    const escapedPath = installerPath.replace(/'/g, "''"); // PS single-quote escape
+    const psCmd = `Start-Process -FilePath '${escapedPath}' -ArgumentList '/S' -Wait -Verb RunAs`;
+    result = spawnSync(
+      'powershell.exe',
+      ['-NoProfile', '-Command', psCmd],
+      { stdio: 'inherit', timeout: 300_000 },
+    );
+  }
 
   if (result.status !== 0) {
     throw new Error(
       `Installer exited with code ${result.status ?? 'unknown'}. ` +
-      'If UAC was cancelled, re-run and approve the elevation prompt.',
+      (isCI ? 'Check runner permissions.' : 'If UAC was cancelled, re-run and approve the elevation prompt.'),
     );
   }
   console.log('   Installation complete.');
