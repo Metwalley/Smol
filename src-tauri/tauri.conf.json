@@ -47,7 +47,9 @@
       "binaries/gs"
     ],
     "windows": {
-      "nsis": {}
+      "nsis": {
+        "installMode": "perMachine"
+      }
     }
   },
   "plugins": {}
