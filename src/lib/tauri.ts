@@ -85,6 +85,29 @@ export const compressVideo = (
 export const cancelJob = (jobId: string) =>
   invoke<void>("cancel_job", { jobId });
 
+/**
+ * Compress a single audio file.
+ * Identical channel/result contract as compressVideo.
+ * The Rust side may change the output extension (e.g. WAV → mp3);
+ * the returned CompressResult.outputPath reflects the actual file written.
+ */
+export const compressAudio = (
+  jobId: string,
+  inputPath: string,
+  outputPath: string,
+  preset: string,
+  durationSec: number | null,
+  onProgress: Channel<VideoProgressEvent>,
+) =>
+  invoke<CompressResult>("compress_audio", {
+    jobId,
+    inputPath,
+    outputPath,
+    preset,
+    durationSec,
+    onProgress,
+  });
+
 /** Open Windows Explorer with the given file highlighted in its parent folder. */
 export const revealInExplorer = (path: string) =>
   invoke<void>("reveal_in_explorer", { path });

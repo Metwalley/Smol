@@ -1,5 +1,98 @@
 use crate::encoders::hw_detect::HwEncoders;
 
+// ─── Audio arg builder ────────────────────────────────────────────────────────
+
+/// Determine the output file extension for an audio compression job.
+///
+/// | Preset      | Input ext            | Output ext |
+/// |-------------|----------------------|------------|
+/// | lossless    | wav / aiff / aif     | flac       |
+/// | lossless    | flac / mp3 / m4a … | same as in |
+/// | lossy       | wav / flac / wma …  | mp3        |
+/// | lossy       | mp3                  | mp3        |
+/// | lossy       | m4a / aac            | m4a        |
+/// | lossy       | ogg                  | ogg        |
+/// | lossy       | opus                 | opus       |
+pub fn audio_output_ext(preset: &str, input_ext: &str) -> &'static str {
+    if preset == "lossless" {
+        return match input_ext {
+            "wav" | "aiff" | "aif" => "flac",
+            "flac"                  => "flac",
+            "m4a" | "aac"          => "m4a",
+            "ogg"                   => "ogg",
+            "opus"                  => "opus",
+            _                       => "mp3", // mp3, wma, unknown → copy into mp3
+        };
+    }
+    // Lossy presets: uncompressed / wma → mp3; everything else keeps format
+    match input_ext {
+        "wav" | "flac" | "aiff" | "aif" | "wma" => "mp3",
+        "mp3"                                     => "mp3",
+        "m4a" | "aac"                             => "m4a",
+        "ogg"                                      => "ogg",
+        "opus"                                     => "opus",
+        _                                          => "mp3",
+    }
+}
+
+/// Build the full FFmpeg argument list for an audio transcode job.
+///
+/// `output` should be the `.part` temp file (caller computes this from the
+/// corrected output path).  `-vn` strips embedded cover-art video streams.
+///
+/// | Preset      | Codec / mode                      | Bitrate |
+/// |-------------|-----------------------------------|---------|
+/// | less        | libmp3lame / aac / libvorbis …    | 320k    |
+/// | recommended | libmp3lame / aac / libvorbis …    | 192k    |
+/// | extreme     | libmp3lame / aac / libvorbis …    | 96k     |
+/// | lossless    | flac (PCM sources) / copy (rest)  | —       |
+pub fn build_audio_args(preset: &str, input_ext: &str, input: &str, output: &str) -> Vec<String> {
+    let mut args: Vec<String> = vec![
+        "-y".into(),
+        "-i".into(), input.into(),
+        "-vn".into(), // strip any embedded video/cover-art stream
+    ];
+
+    match preset {
+        "lossless" => match input_ext {
+            "wav" | "aiff" | "aif" => {
+                // PCM → FLAC: lossless compression
+                args.extend(["-c:a".into(), "flac".into()]);
+            }
+            _ => {
+                // Already lossy or lossless-compressed: remux without re-encoding
+                args.extend(["-c:a".into(), "copy".into()]);
+            }
+        },
+        _ => {
+            let bitrate = match preset {
+                "less"    => "320k",
+                "extreme" => "96k",
+                _         => "192k", // "recommended" and any unknown preset
+            };
+            let codec = match input_ext {
+                "m4a" | "aac" => "aac",
+                "ogg"          => "libvorbis",
+                "opus"         => "libopus",
+                _              => "libmp3lame",
+            };
+            args.extend([
+                "-c:a".into(), codec.into(),
+                "-b:a".into(), bitrate.into(),
+            ]);
+        }
+    }
+
+    // Progress reporting key=value on stdout; suppress extra stderr noise
+    args.extend([
+        "-progress".into(), "pipe:1".into(),
+        "-nostats".into(),
+        output.into(),
+    ]);
+
+    args
+}
+
 /// Map user-facing preset names to FFmpeg quality knobs.
 ///
 /// | Preset      | libx264 CRF | x264 preset | NVENC CQ | NVENC preset |

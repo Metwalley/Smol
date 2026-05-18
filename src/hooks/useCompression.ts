@@ -1,38 +1,61 @@
 import { Channel } from "@tauri-apps/api/core";
 import { useJobsStore } from "@/store/jobs";
 import { useSettingsStore } from "@/store/settings";
-import { compressVideo } from "@/lib/tauri";
+import { compressAudio, compressVideo } from "@/lib/tauri";
 import type { VideoProgressEvent } from "@/lib/tauri";
 import { buildOutputPath } from "@/lib/outputPath";
 
 /**
- * Start compression for every "ready" video job in the queue.
+ * Extract a human-readable string from whatever Tauri throws on command failure.
  *
- * Fires all jobs concurrently.  Each job gets its own Channel so progress
- * events are routed atomically to the correct job row.
+ * Tauri rejects with a serialised AppError object: { kind: "Other", message: "…" }
+ * rather than a JS Error instance, so we probe for `.message` first.
+ */
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (
+    err !== null &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as Record<string, unknown>).message === "string"
+  ) {
+    return (err as Record<string, unknown>).message as string;
+  }
+  return String(err);
+}
+
+/**
+ * Start compression for every "ready" video or audio job in the queue.
  *
- * This is a plain async function (not a React hook) because it only uses
- * getState() — no React state or lifecycle involved.
+ * All eligible jobs are fired concurrently.  Each gets its own Channel so
+ * progress events are routed atomically to the correct row — no extra UI code
+ * needed for audio because it reuses the identical state machine.
+ *
+ * Audio note: the Rust command may change the output file extension
+ * (e.g. WAV → mp3).  CompressResult.outputPath always reflects the actual
+ * file written on disk, so the store is always consistent.
  */
 export async function startSqueeze(): Promise<void> {
   const { jobs, jobIds } = useJobsStore.getState();
   const { preset, outputMode, filenamePattern, customOutputDir } =
     useSettingsStore.getState();
 
-  // Only video jobs that are ready
-  const readyVideoIds = jobIds.filter(
-    (id) => jobs[id]?.kind === "video" && jobs[id]?.status === "ready",
+  // Collect ready video + audio jobs
+  const readyIds = jobIds.filter(
+    (id) =>
+      (jobs[id]?.kind === "video" || jobs[id]?.kind === "audio") &&
+      jobs[id]?.status === "ready",
   );
 
-  if (readyVideoIds.length === 0) return;
+  if (readyIds.length === 0) return;
 
   // Transition all to "encoding" before spawning so the UI reacts immediately
-  for (const id of readyVideoIds) {
+  for (const id of readyIds) {
     useJobsStore.getState().transitionStatus(id, "encoding");
   }
 
   await Promise.allSettled(
-    readyVideoIds.map(async (jobId) => {
+    readyIds.map(async (jobId) => {
       const job = useJobsStore.getState().jobs[jobId];
       if (!job) return;
 
@@ -43,7 +66,7 @@ export async function startSqueeze(): Promise<void> {
         customOutputDir,
       );
 
-      // Each job gets its own channel — events contain jobId so routing is unambiguous
+      // Each job gets its own channel — events carry jobId so routing is exact
       const channel = new Channel<VideoProgressEvent>();
       channel.onmessage = (ev) => {
         useJobsStore.getState().updateJobProgress(jobId, {
@@ -55,7 +78,9 @@ export async function startSqueeze(): Promise<void> {
       };
 
       try {
-        const result = await compressVideo(
+        // Route to the correct Rust command based on file kind
+        const compressFn = job.kind === "audio" ? compressAudio : compressVideo;
+        const result = await compressFn(
           jobId,
           job.inputPath,
           outputPath,
@@ -71,22 +96,7 @@ export async function startSqueeze(): Promise<void> {
           result.outputBytes,
         );
       } catch (err) {
-        // Tauri commands reject with the serialised AppError object:
-        // { kind: "Other", message: "…" } — extract `.message` when present.
-        let msg: string;
-        if (err instanceof Error) {
-          msg = err.message;
-        } else if (
-          err !== null &&
-          typeof err === "object" &&
-          "message" in err &&
-          typeof (err as Record<string, unknown>).message === "string"
-        ) {
-          msg = (err as Record<string, unknown>).message as string;
-        } else {
-          msg = String(err);
-        }
-        useJobsStore.getState().setJobError(jobId, msg);
+        useJobsStore.getState().setJobError(jobId, extractErrorMessage(err));
       }
     }),
   );
