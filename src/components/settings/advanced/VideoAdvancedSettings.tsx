@@ -2,7 +2,6 @@ import { useVideoAdvanced, useSettingsStore } from "@/store/settings";
 
 export function VideoAdvancedSettings() {
   const settings = useVideoAdvanced();
-  const patchVideo = useSettingsStore((s) => s.patchVideoAdvanced);
 
   return (
     <div className="space-y-6">
@@ -11,7 +10,7 @@ export function VideoAdvancedSettings() {
         <label className="block text-sm font-medium text-zinc-300 mb-2">Codec</label>
         <select
           value={settings?.codec ?? "h264"}
-          onChange={(e) => patchVideo({ codec: e.target.value as "h264" | "h265" | "av1" })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ codec: e.target.value as "h264" | "h265" | "av1" })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="h264">H.264</option>
@@ -30,7 +29,7 @@ export function VideoAdvancedSettings() {
           min="0"
           max="51"
           value={settings?.crf ?? 23}
-          onChange={(e) => patchVideo({ crf: parseInt(e.target.value) })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ crf: parseInt(e.target.value) })}
           className="w-full accent-indigo-500"
         />
         <div className="flex justify-between text-xs text-zinc-500 mt-1">
@@ -41,15 +40,18 @@ export function VideoAdvancedSettings() {
 
       {/* Resolution scale */}
       <div>
-        <label className="block text-sm font-medium text-zinc-300 mb-2">Resolution scale</label>
+        <label className="block text-sm font-medium text-zinc-300 mb-2">Resolution</label>
         <select
-          value={settings?.scale ?? 1}
-          onChange={(e) => patchVideo({ scale: parseFloat(e.target.value) })}
+          value={settings?.targetResolution ?? "original"}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ targetResolution: e.target.value as "original" | "4k" | "1080p" | "720p" | "480p" | "custom" })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
-          <option value={1}>Original</option>
-          <option value={0.5}>Half</option>
-          <option value={0.25}>Quarter</option>
+          <option value="original">Original</option>
+          <option value="4k">4K (2160p)</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+          <option value="custom">Custom</option>
         </select>
       </div>
 
@@ -59,7 +61,7 @@ export function VideoAdvancedSettings() {
         <input
           type="number"
           value={settings?.fps ?? ""}
-          onChange={(e) => patchVideo({ fps: e.target.value ? parseInt(e.target.value) : undefined })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ fps: e.target.value ? parseInt(e.target.value) : undefined })}
           placeholder="No cap"
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
         />
@@ -70,7 +72,7 @@ export function VideoAdvancedSettings() {
         <label className="block text-sm font-medium text-zinc-300 mb-2">Hardware encoder</label>
         <select
           value={settings?.hwEncoder ?? "auto"}
-          onChange={(e) => patchVideo({ hwEncoder: e.target.value as "auto" | "nvenc" | "qsv" | "amf" | "none" })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ hwEncoder: e.target.value as "auto" | "nvenc" | "qsv" | "amf" | "none" })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="auto">Auto</option>
@@ -87,7 +89,7 @@ export function VideoAdvancedSettings() {
         <input
           type="number"
           value={settings?.audioKbps ?? 128}
-          onChange={(e) => patchVideo({ audioKbps: parseInt(e.target.value) })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ audioKbps: parseInt(e.target.value) })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         />
       </div>
@@ -98,7 +100,7 @@ export function VideoAdvancedSettings() {
           type="checkbox"
           id="faststart"
           checked={settings?.faststart ?? true}
-          onChange={(e) => patchVideo({ faststart: e.target.checked })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ faststart: e.target.checked })}
           className="accent-indigo-500"
         />
         <label htmlFor="faststart" className="text-sm text-zinc-300">FastStart (web playback)</label>
@@ -110,7 +112,7 @@ export function VideoAdvancedSettings() {
           type="checkbox"
           id="strip-metadata"
           checked={settings?.stripMetadata ?? false}
-          onChange={(e) => patchVideo({ stripMetadata: e.target.checked })}
+          onChange={(e) => useSettingsStore.getState().patchVideoAdvanced({ stripMetadata: e.target.checked })}
           className="accent-indigo-500"
         />
         <label htmlFor="strip-metadata" className="text-sm text-zinc-300">Strip metadata</label>

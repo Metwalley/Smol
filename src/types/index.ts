@@ -67,7 +67,7 @@ export interface Settings {
     video?: {
       codec?: "h264" | "h265" | "av1";
       crf?: number;
-      scale?: number;
+      targetResolution?: "original" | "4k" | "1080p" | "720p" | "480p" | "custom";
       fps?: number;
       hwEncoder?: "auto" | "nvenc" | "qsv" | "amf" | "none";
       audioKbps?: number;

@@ -11,7 +11,6 @@ const OUTPUT_MODES = [
 export function OutputControls() {
   const outputMode = useOutputMode();
   const filenamePattern = useFilenamePattern();
-  const setSettings = useSettingsStore((s) => s.patch);
   const jobCount = useJobCount();
 
   return (
@@ -21,7 +20,7 @@ export function OutputControls() {
         {OUTPUT_MODES.map((mode) => (
           <button
             key={mode.id}
-            onClick={() => setSettings({ outputMode: mode.id })}
+            onClick={() => useSettingsStore.getState().patch({ outputMode: mode.id })}
             className={`
               px-3 py-2 rounded-lg text-sm font-medium transition-all
               ${outputMode === mode.id
@@ -41,7 +40,7 @@ export function OutputControls() {
         <input
           type="text"
           value={filenamePattern}
-          onChange={(e) => setSettings({ filenamePattern: e.target.value })}
+          onChange={(e) => useSettingsStore.getState().patch({ filenamePattern: e.target.value })}
           className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
           placeholder="{name}_smol{ext}"
         />

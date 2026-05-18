@@ -1,6 +1,6 @@
 import { Check, Zap } from "lucide-react";
 import { usePreset, useSettingsStore } from "@/store/settings";
-import { useJobs, useJobCount } from "@/store/jobs";
+import { useJobs, useJobCount, useHasAnyVideo } from "@/store/jobs";
 import { getPresetEstimate } from "@/lib/estimate";
 import { formatBytes } from "@/lib/format";
 
@@ -77,18 +77,15 @@ function PresetCard({
 
 export function PresetCards() {
   const currentPreset = usePreset();
-  const setPreset = useSettingsStore((s) => s.patch);
   const jobs = useJobs();
   const jobCount = useJobCount();
+  const hasVideo = useHasAnyVideo(); // HR-7: atomic selector (HR-11: disable lossless for video)
 
   // Compute estimates for all presets
   const estimates = PRESETS.map((p) => {
     const estBytes = jobCount > 0 ? getPresetEstimate(jobs, p.id) : undefined;
-    return estBytes !== undefined ? formatBytes(estBytes) : "—";
+    return estBytes !== undefined ? `~${formatBytes(estBytes)}` : "—";
   });
-
-  // Disable lossless if any video in queue (HR-11)
-  const hasVideo = Object.values(jobs).some((j) => j.kind === "video");
 
   return (
     <div className="flex gap-3 mb-4">
@@ -99,7 +96,7 @@ export function PresetCards() {
           isSelected={currentPreset === preset.id}
           estimate={estimates[idx]}
           isDisabled={preset.id === "lossless" && hasVideo}
-          onClick={() => setPreset({ preset: preset.id })}
+          onClick={() => useSettingsStore.getState().patch({ preset: preset.id })}
         />
       ))}
     </div>

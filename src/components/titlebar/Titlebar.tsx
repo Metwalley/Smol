@@ -3,7 +3,6 @@ import { useUiStore } from "@/store/ui";
 
 export function Titlebar() {
   const isAdvancedOpen = useUiStore((s) => s.isAdvancedOpen);
-  const setAdvancedOpen = useUiStore((s) => s.setAdvancedOpen);
 
   return (
     <div
@@ -17,7 +16,7 @@ export function Titlebar() {
       {/* System Min/Max/Close controls are drawn by Windows at the right edge.
           Leave ~138 px of space — do not place interactive elements there. */}
       <button
-        onClick={() => setAdvancedOpen(!isAdvancedOpen)}
+        onClick={() => useUiStore.getState().setAdvancedOpen(!isAdvancedOpen)}
         className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
         aria-label="Advanced settings"
       >

@@ -6,7 +6,7 @@ const DEFAULT_ADVANCED = {
   video: {
     codec: "h264" as const,
     crf: 23,
-    scale: 1,
+    targetResolution: "original" as const,
     fps: undefined,
     hwEncoder: "auto" as const,
     audioKbps: 128,

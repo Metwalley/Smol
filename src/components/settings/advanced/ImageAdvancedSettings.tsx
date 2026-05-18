@@ -2,7 +2,6 @@ import { useImageAdvanced, useSettingsStore } from "@/store/settings";
 
 export function ImageAdvancedSettings() {
   const settings = useImageAdvanced();
-  const patchImage = useSettingsStore((s) => s.patchImageAdvanced);
 
   return (
     <div className="space-y-6">
@@ -11,7 +10,7 @@ export function ImageAdvancedSettings() {
         <label className="block text-sm font-medium text-zinc-300 mb-2">Output format</label>
         <select
           value={settings?.format ?? "keep"}
-          onChange={(e) => patchImage({ format: e.target.value as "keep" | "jpeg" | "png" | "webp" | "avif" })}
+          onChange={(e) => useSettingsStore.getState().patchImageAdvanced({ format: e.target.value as "keep" | "jpeg" | "png" | "webp" | "avif" })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="keep">Keep original</option>
@@ -32,7 +31,7 @@ export function ImageAdvancedSettings() {
           min="1"
           max="100"
           value={settings?.quality ?? 85}
-          onChange={(e) => patchImage({ quality: parseInt(e.target.value) })}
+          onChange={(e) => useSettingsStore.getState().patchImageAdvanced({ quality: parseInt(e.target.value) })}
           className="w-full accent-indigo-500"
         />
         <div className="flex justify-between text-xs text-zinc-500 mt-1">
@@ -46,7 +45,7 @@ export function ImageAdvancedSettings() {
         <label className="block text-sm font-medium text-zinc-300 mb-2">Resize</label>
         <select
           value={settings?.resize?.mode ?? "off"}
-          onChange={(e) => patchImage({ resize: { mode: e.target.value as "fit" | "exact" | "off" } })}
+          onChange={(e) => useSettingsStore.getState().patchImageAdvanced({ resize: { mode: e.target.value as "fit" | "exact" | "off" } })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="off">Off</option>
@@ -61,7 +60,7 @@ export function ImageAdvancedSettings() {
           type="checkbox"
           id="strip-metadata"
           checked={settings?.stripMetadata ?? false}
-          onChange={(e) => patchImage({ stripMetadata: e.target.checked })}
+          onChange={(e) => useSettingsStore.getState().patchImageAdvanced({ stripMetadata: e.target.checked })}
           className="accent-indigo-500"
         />
         <label htmlFor="strip-metadata" className="text-sm text-zinc-300">Strip metadata</label>

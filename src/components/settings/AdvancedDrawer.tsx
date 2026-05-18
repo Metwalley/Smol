@@ -17,12 +17,10 @@ const TABS = [
 
 export function AdvancedDrawer() {
   const isOpen = useUiStore((s) => s.isAdvancedOpen);
-  const setAdvancedOpen = useUiStore((s) => s.setAdvancedOpen);
   const [activeTab, setActiveTab] = useState<"video" | "audio" | "image" | "pdf">("video");
 
   const targetFileSize = useTargetFileSize();
   const parallelJobs = useParallelJobs();
-  const setSettings = useSettingsStore((s) => s.patch);
 
   return (
     <AnimatePresence>
@@ -33,7 +31,7 @@ export function AdvancedDrawer() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setAdvancedOpen(false)}
+            onClick={() => useUiStore.getState().setAdvancedOpen(false)}
             className="fixed inset-0 bg-black/50 z-40"
           />
 
@@ -49,7 +47,7 @@ export function AdvancedDrawer() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
               <h2 className="text-lg font-semibold text-zinc-100">Advanced Settings</h2>
               <button
-                onClick={() => setAdvancedOpen(false)}
+                onClick={() => useUiStore.getState().setAdvancedOpen(false)}
                 className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -89,7 +87,7 @@ export function AdvancedDrawer() {
                     min="1"
                     max="16"
                     value={parallelJobs}
-                    onChange={(e) => setSettings({ parallelJobs: parseInt(e.target.value) })}
+                    onChange={(e) => useSettingsStore.getState().patch({ parallelJobs: parseInt(e.target.value) })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -101,7 +99,7 @@ export function AdvancedDrawer() {
                     <select
                       value={targetFileSize?.mode ?? "absolute"}
                       onChange={(e) =>
-                        setSettings({
+                        useSettingsStore.getState().patch({
                           targetFileSize: {
                             mode: e.target.value as "absolute" | "percent",
                             value: targetFileSize?.value ?? 0,
@@ -117,7 +115,7 @@ export function AdvancedDrawer() {
                       type="number"
                       value={targetFileSize?.value ?? ""}
                       onChange={(e) =>
-                        setSettings({
+                        useSettingsStore.getState().patch({
                           targetFileSize: {
                             mode: (targetFileSize?.mode ?? "absolute") as "absolute" | "percent",
                             value: parseFloat(e.target.value),

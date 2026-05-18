@@ -2,7 +2,6 @@ import { usePdfAdvanced, useSettingsStore } from "@/store/settings";
 
 export function PdfAdvancedSettings() {
   const settings = usePdfAdvanced();
-  const patchPdf = useSettingsStore((s) => s.patchPdfAdvanced);
 
   return (
     <div className="space-y-6">
@@ -11,7 +10,7 @@ export function PdfAdvancedSettings() {
         <label className="block text-sm font-medium text-zinc-300 mb-2">Compression preset</label>
         <select
           value={settings?.preset ?? "ebook"}
-          onChange={(e) => patchPdf({ preset: e.target.value as "screen" | "ebook" | "printer" | "prepress" })}
+          onChange={(e) => useSettingsStore.getState().patchPdfAdvanced({ preset: e.target.value as "screen" | "ebook" | "printer" | "prepress" })}
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="screen">/screen (72 dpi, low quality)</option>
@@ -27,7 +26,7 @@ export function PdfAdvancedSettings() {
         <input
           type="number"
           value={settings?.dpi ?? ""}
-          onChange={(e) => patchPdf({ dpi: e.target.value ? parseInt(e.target.value) : undefined })}
+          onChange={(e) => useSettingsStore.getState().patchPdfAdvanced({ dpi: e.target.value ? parseInt(e.target.value) : undefined })}
           placeholder="Auto"
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
         />
@@ -39,7 +38,7 @@ export function PdfAdvancedSettings() {
         <input
           type="number"
           value={settings?.downsampleThreshold ?? ""}
-          onChange={(e) => patchPdf({ downsampleThreshold: e.target.value ? parseInt(e.target.value) : undefined })}
+          onChange={(e) => useSettingsStore.getState().patchPdfAdvanced({ downsampleThreshold: e.target.value ? parseInt(e.target.value) : undefined })}
           placeholder="Auto"
           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
         />
