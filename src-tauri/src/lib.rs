@@ -23,6 +23,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             fs_bridge::get_path_info,
             fs_bridge::list_dir_supported,
+            fs_bridge::reveal_in_explorer,
             probe::probe_media,
             thumbs::generate_thumbnail,
             compress_video,

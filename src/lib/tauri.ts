@@ -84,3 +84,7 @@ export const compressVideo = (
 /** Kill a running FFmpeg process and clean up the partial output file. */
 export const cancelJob = (jobId: string) =>
   invoke<void>("cancel_job", { jobId });
+
+/** Open Windows Explorer with the given file highlighted in its parent folder. */
+export const revealInExplorer = (path: string) =>
+  invoke<void>("reveal_in_explorer", { path });

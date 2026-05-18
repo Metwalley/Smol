@@ -57,6 +57,19 @@ pub fn get_path_info(path: String) -> Result<PathInfo, AppError> {
     })
 }
 
+/// Open Windows Explorer with the given file selected (highlight it in its folder).
+#[tauri::command]
+pub fn reveal_in_explorer(path: String) -> Result<(), AppError> {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .args(["/select,", &path])
+            .spawn()
+            .map_err(|e| AppError::Io(e.to_string()))?;
+    }
+    Ok(())
+}
+
 /// Walk a directory one level deep and return all supported files.
 /// Subdirectories are not recursed — a top-level folder drop gives the
 /// immediate children only. This is intentional: recursive drops on large

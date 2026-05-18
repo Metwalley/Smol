@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { X, CheckCircle2 } from "lucide-react";
+import { X, CheckCircle2, FolderSearch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatBytesExact, middleTruncate, parentDirName } from "@/lib/format";
@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAllJobIds, useJob, useJobsStore } from "@/store/jobs";
 import { usePreset } from "@/store/settings";
 import { estimateOutputBytes } from "@/lib/estimate";
-import { cancelJob } from "@/lib/tauri";
+import { cancelJob, revealInExplorer } from "@/lib/tauri";
 import type { Job } from "@/types";
 import type { FileKind } from "@/types";
 import { TypeFilterChips } from "./TypeFilterChips";
@@ -237,10 +237,22 @@ function JobRow({ jobId }: { jobId: string }) {
         )}
       </div>
 
-      {/* Right column: size estimate / actual / done icon */}
+      {/* Right column: size estimate / actual / done icon + reveal button */}
       <div className="flex flex-col items-end gap-1 shrink-0">
         {isDone ? (
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="flex items-center gap-1">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            {job.outputPath && (
+              <button
+                onClick={() => revealInExplorer(job.outputPath!).catch(() => {})}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300"
+                aria-label="Reveal in Explorer"
+                title="Reveal in Explorer"
+              >
+                <FolderSearch className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         ) : null}
         <span className={cn(
           "font-mono text-xs font-medium whitespace-nowrap tabular-nums",
