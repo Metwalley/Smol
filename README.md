@@ -3,7 +3,7 @@
 A fast, native Windows desktop app for compressing video, audio, image, and PDF files.
 Drop any mix of files onto the app — Smol handles the rest.
 
-![Smol screenshot](public/logo.png)
+<img src="public/logo.png" width="120" alt="Smol" />
 
 ---
 
