@@ -4,27 +4,16 @@
   <p><strong>The file compressor that stays out of your way.</strong><br/>Drop any mix of videos, audio, images, and PDFs. Hit Squeeze. Done.</p>
 
   <p>
-    <a href="https://github.com/Metwalley/Smol/actions/workflows/release.yml">
-      <img src="https://img.shields.io/github/actions/workflow/status/Metwalley/Smol/release.yml?style=flat-square&logo=github&label=Windows%20Build" alt="Windows Build Status">
-    </a>
-    <a href="https://github.com/Metwalley/Smol/releases/latest">
-      <img src="https://img.shields.io/github/v/release/Metwalley/Smol?style=flat-square&color=5865F2" alt="Latest Release">
-    </a>
-    <a href="https://github.com/Metwalley/Smol/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/Metwalley/Smol?style=flat-square" alt="License">
-    </a>
+    <a href="https://github.com/Metwalley/Smol/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/Metwalley/Smol/release.yml?style=flat-square&logo=github&label=Windows%20Build" alt="Windows Build Status"></a>
+    <a href="https://github.com/Metwalley/Smol/releases/latest"><img src="https://img.shields.io/github/v/release/Metwalley/Smol?style=flat-square&color=5865F2" alt="Latest Release"></a>
+    <a href="https://github.com/Metwalley/Smol/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Metwalley/Smol?style=flat-square" alt="License"></a>
   </p>
 
-  <br/>
-
   <a href="https://github.com/Metwalley/Smol/releases/latest/download/Smol_1.0.0_x64-setup.exe">
-    <img src="https://img.shields.io/badge/⬇ Download for Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" />
-  </a>
-  <br/><br/>
+    <img src="https://img.shields.io/badge/⬇_Download_for_Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" />
+  </a><br/>
   <em>Windows 10 / 11 · 64-bit · 70 MB</em>
-
   <br/><br/>
-
   <img src="Marketing-Assets/hero_showcase.png" alt="Smol — hero screenshot" width="90%" />
 </div>
 
@@ -75,12 +64,19 @@ https://github.com/user-attachments/assets/7449709d-c937-474a-b764-866df209bef8
 
 ---
 
+### Buttery Smooth UI
+
+https://github.com/user-attachments/assets/42d4dce6-fa8c-4c93-9ae9-fde20ee5b2eb
+
+*Built with Framer Motion for premium, native-feeling layout animations and state transitions.*
+
+---
+
 ### Precision Per-File Settings
 
 <div align="center">
   <img src="Marketing-Assets/per_file_settings.png" alt="Per-file target size settings" width="80%" />
-  <br/><br/>
-  <em>Set a precise target size per file — perfect for Discord, email, or social media limits.</em>
+  <br/><em>Set a precise target size per file — perfect for Discord, email, or social media limits.</em>
 </div>
 
 <br/>
@@ -89,8 +85,7 @@ https://github.com/user-attachments/assets/7449709d-c937-474a-b764-866df209bef8
 
 <div align="center">
   <img src="Marketing-Assets/done_state_savings.png" alt="Compression results showing savings" width="80%" />
-  <br/><br/>
-  <em>See exactly how much space you saved, file by file, the moment compression finishes.</em>
+  <br/><em>See exactly how much space you saved, file by file, the moment compression finishes.</em>
 </div>
 
 <br/>
@@ -99,8 +94,7 @@ https://github.com/user-attachments/assets/7449709d-c937-474a-b764-866df209bef8
 
 <div align="center">
   <img src="Marketing-Assets/image_comparison_slider.png" alt="Before/After comparison slider" width="80%" />
-  <br/><br/>
-  <em>The built-in before/after slider lets you visually validate quality before keeping the output.</em>
+  <br/><em>The built-in before/after slider lets you visually validate quality before keeping the output.</em>
 </div>
 
 ---
