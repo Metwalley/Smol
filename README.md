@@ -4,9 +4,15 @@
   <h3>A fast, native Windows desktop app for compressing video, audio, image, and PDF files. Drop any mix of files onto the app — Smol handles the rest.</h3>
   
   <p>
-    <img src="https://img.shields.io/github/actions/workflow/status/Metwalley/Smol/release.yml?style=flat-square&logo=github&label=Windows%20Build" alt="Windows Build Status">
-    <img src="https://img.shields.io/github/v/release/Metwalley/Smol?style=flat-square&color=blue" alt="Latest Release">
-    <img src="https://img.shields.io/github/license/Metwalley/Smol?style=flat-square" alt="License">
+    <a href="https://github.com/Metwalley/Smol/actions/workflows/release.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/Metwalley/Smol/release.yml?style=flat-square&logo=github&label=Windows%20Build" alt="Windows Build Status">
+    </a>
+    <a href="https://github.com/Metwalley/Smol/releases/latest">
+      <img src="https://img.shields.io/github/v/release/Metwalley/Smol?style=flat-square&color=blue" alt="Latest Release">
+    </a>
+    <a href="https://github.com/Metwalley/Smol/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/Metwalley/Smol?style=flat-square" alt="License">
+    </a>
   </p>
 
   <br />
