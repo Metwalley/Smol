@@ -20,8 +20,8 @@
   <a href="https://github.com/Metwalley/Smol/releases/latest/download/Smol_1.0.0_x64-setup.exe">
     <img src="https://img.shields.io/badge/⬇ Download for Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" />
   </a>
-  <br/>
-  <sub>Windows 10 / 11 · 64-bit · 70 MB</sub>
+  <br/><br/>
+  <em>Windows 10 / 11 · 64-bit · 70 MB</em>
 
   <br/><br/>
 
@@ -67,23 +67,40 @@ A visual slider lets you compare the original and compressed output side by side
 
 ## See it in action
 
+### Seamless Compression Flow
+
+https://github.com/user-attachments/assets/7449709d-c937-474a-b764-866df209bef8
+
+*Drop files, pick a preset, and hit Squeeze. The queue runs instantly and seamlessly.*
+
+---
+
+### Precision Per-File Settings
+
 <div align="center">
   <img src="Marketing-Assets/per_file_settings.png" alt="Per-file target size settings" width="80%" />
-  <br/><sub>Set a precise target size per file — perfect for Discord, email, or social media limits.</sub>
+  <br/><br/>
+  <em>Set a precise target size per file — perfect for Discord, email, or social media limits.</em>
 </div>
 
 <br/>
+
+### Massive Savings
 
 <div align="center">
   <img src="Marketing-Assets/done_state_savings.png" alt="Compression results showing savings" width="80%" />
-  <br/><sub>See exactly how much space you saved, file by file, the moment compression finishes.</sub>
+  <br/><br/>
+  <em>See exactly how much space you saved, file by file, the moment compression finishes.</em>
 </div>
 
 <br/>
 
+### Before / After Preview
+
 <div align="center">
   <img src="Marketing-Assets/image_comparison_slider.png" alt="Before/After comparison slider" width="80%" />
-  <br/><sub>The built-in before/after slider lets you visually validate quality before keeping the output.</sub>
+  <br/><br/>
+  <em>The built-in before/after slider lets you visually validate quality before keeping the output.</em>
 </div>
 
 ---
