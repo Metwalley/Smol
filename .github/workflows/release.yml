@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: npm install -g pnpm@9
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install JS deps
+        run: pnpm install
+
+      - name: Install Ghostscript
+        run: choco install ghostscript --no-progress -y
+
+      - name: Fetch sidecars
+        run: |
+          node scripts/fetch-ffmpeg.mjs
+          node scripts/fetch-ghostscript.mjs
+
+      - name: Verify sidecar binaries
+        shell: pwsh
+        run: |
+          $files = @(
+            "src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/ffprobe-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/gs-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/gsdll64.dll"
+          )
+          foreach ($f in $files) {
+            if (-not (Test-Path $f)) { throw "Missing sidecar: $f" }
+            $mb = [math]::Round((Get-Item $f).Length / 1MB, 1)
+            Write-Host "OK $f ($mb MB)"
+          }
+
+      - name: Build & publish
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Smol ${{ github.ref_name }}"
+          releaseBody: "See CHANGELOG for details."
+          releaseDraft: false
+          prerelease: false

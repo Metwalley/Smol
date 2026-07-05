@@ -1,0 +1,31 @@
+# JS
+node_modules
+
+# Rust build output
+src-tauri/target
+
+# Sidecar binaries (fetched at build time — not committed)
+src-tauri/binaries/*.exe
+src-tauri/binaries/*.dll
+src-tauri/binaries/_extract/
+
+# Vite build output
+dist
+
+# Local tool config (not project config)
+.devin/config.local.json
+
+# Scratch files
+scripts/optimize_logo.py
+test*.png
+Smol_*.exe
+
+# Agent & config files (User requested to hide)
+.claude/
+AGENTS.md
+CLAUDE.md
+THIRD_PARTY_NOTICES.md
+components.json
+manual_test_plan.md
+marketing_assets.md
+walkthrough.md

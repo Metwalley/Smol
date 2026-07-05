@@ -1,0 +1,84 @@
+PS C:\Users\Metwally\Downloads\Projects\Smol> pnpm install
+pnpm : The term 'pnpm' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ pnpm install
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (pnpm:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+PS C:\Users\Metwally\Downloads\Projects\Smol> pnpm tauri dev
+pnpm : The term 'pnpm' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ pnpm tauri dev
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (pnpm:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+PS C:\Users\Metwally\Downloads\Projects\Smol>
+help me install itShow moreIdentified quickest pnpm installation methods for Windows PowerShellIdentified quickest pnpm installation methods for Windows PowerShellFastest path — run this in PowerShell:
+powershellnpm install -g pnpm
+If that works, you're done. Then:
+powershellpnpm install
+pnpm tauri dev
+
+If npm isn't found either (no Node.js installed), use the standalone PowerShell installer:
+powershelliwr https://get.pnpm.io/install.ps1 -useb | iex
+Then close and reopen PowerShell (it updates PATH), and run pnpm install.
+
+If you get an execution policy error on the standalone installer:
+powershellSet-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+iwr https://get.pnpm.io/install.ps1 -useb | iex
+What does node --version return right now?PS C:\Users\Metwally\Downloads\Projects\Smol> pnpm install
+pnpm : The term 'pnpm' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At line:1 char:1
++ pnpastedI notice the user prompt is empty, so I cannot determine the primary language. However, based on the thinking block content which references a user named "Abdo," here is my summary:
+
+Diagnosed corrupted download and deliberated practical remediation strategiesI notice the user prompt is empty, so I cannot determine the primary language. However, based on the thinking block content which references a user named "Abdo," here is my summary:
+
+Diagnosed corrupted download and deliberated practical remediation strategiesThe actual error is the SHA256 mismatch in fetch-ffmpeg.mjs — pnpm itself is fine. The ffmpeg download (~34 MB over your slow TEData connection) almost certainly got corrupted mid-transfer.
+First, look at the script:
+powershellcat scripts/fetch-ffmpeg.mjs
+Paste the output — I need to see the download URL and expected hash. Then there are two likely fixes:
+Option A — Re-download (if it was just a fluke corruption):
+powershell# Clear any cached partial download first, then retry
+pnpm install
+Option B — Manual download (better for slow connections):
+Once I see the script, I can tell you the exact URL. Download it with IDM or a browser (supports resume), drop the file in the right place, then patch the script to skip re-downloading if the file already exists.
+Run cat scripts/fetch-ffmpeg.mjs and share the output.PS C:\Users\Metwally\Downloads\Projects\Smol> cat scripts/fetch-ffmpeg.mjs
+#!/usr/bin/env node
+/**
+ * fetch-ffmpeg.mjs
+ * Downloads FFmpeg + FFprobe from gyan.dev (LGPL release-essentials build),
+ * verifies SHA-256 against gyan.dev's published hash file, then extracts the
+ * binaries with 7zapastedI notice the user prompt is empty, so I cannot determine the primary language or provide an appropriate summary. Please provide the user prompt so I can create an accurate summary in the correct languageI notice the user prompt is empty, so I cannot determine the primary language or provide an appropriate summary. Please provide the user prompt so I can create an accurate summary in the correct languageTwo issues: the SHA pin is stale (it was pinned to FFmpeg 8.1.1 from May 2025, gyan.dev has since updated the file), and your connection dropped/corrupted the 34 MB download anyway.
+Fix: patch the script + download manually with IDM
+1. Edit scripts/fetch-ffmpeg.mjs — two changes:
+Change line:
+jsconst EXPECTED_SHA256 = '23ad8969fbe701d44e6e7e2b97c5fae4a71224fc33a2560a9034e5110d029d15';
+to:
+jsconst EXPECTED_SHA256 = ''; // fetch current hash from gyan.dev at runtime
+Then find the download block (step 2 in the script) and wrap it with an existence check:
+js// ── 2. Download archive ──────────────────────────────────────────────────────
+const archivePath = join(BINARIES_DIR, '_ffmpeg-essentials.7z');
+if (existsSync(archivePath)) {
+  console.log('✓  Archive already present — skipping download.');
+} else {
+  console.log('↓  Downloading ffmpeg-release-essentials.7z (this may take a minute)…');
+  const dlRes = await fetch(ARCHIVE_URL);
+  if (!dlRes.ok) throw new Error(`Download failed: HTTP ${dlRes.status} — ${ARCHIVE_URL}`);
+  const totalMb = Number(dlRes.headers.get('content-length') || 0) / 1_000_000;
+  if (totalMb > 0) console.log(`   Size: ~${totalMb.toFixed(0)} MB`);
+  await pipeline(Readable.fromWeb(dlRes.body), createWriteStream(archivePath));
+  console.log('   Download complete.');
+}
+2. Create the target dir and download manually:
+powershellmkdir src-tauri\binaries -Force
+Then download this URL with IDM (it supports resume):
+https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z
+Save it exactly to:
+C:\Users\Metwally\Downloads\Projects\Smol\src-tauri\binaries\_ffmpeg-essentials.7z
+Note the leading underscore in the filename.
+3. Run install again:
+powershellpnpm install
+Now it'll skip the download, fetch the current SHA from gyan.dev (tiny text file), verify the file you placed, and extract. Should complete in seconds.
