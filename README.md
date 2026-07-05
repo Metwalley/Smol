@@ -40,8 +40,8 @@ Drop any mix of file types at once. Smol detects each format and routes it to th
 ### Per-File Precision
 Set a specific target size on individual files right inside the queue row — e.g. exactly 8 MB for a Discord upload — without changing the global preset for the rest of the batch.
 
-### Four Plain-English Presets
-**Less Compression** · **Recommended** · **Extreme Compression** · **Lossless**. No CRF values, no bitrate sliders, no jargon. Recommended is the default and hits the best quality-to-size balance for almost every file.
+### Three Plain-English Presets
+**Less Compression** · **Recommended** · **Extreme Compression**. No CRF values, no bitrate sliders, no jargon. Recommended is the default and hits the best quality-to-size balance for almost every file.
 
 ### "Already Optimal" Detection
 If compressing a file would make it *larger*, Smol stops and marks it as **Already optimal** rather than wasting your time with a bloated output.
