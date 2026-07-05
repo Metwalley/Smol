@@ -5,6 +5,26 @@ export function ImageAdvancedSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Format Conversion */}
+      <div>
+        <label className="block text-sm font-medium text-zinc-300 mb-2">
+          Output Format
+        </label>
+        <select
+          value={settings?.format ?? "keep"}
+          onChange={(e) => useSettingsStore.getState().patchImageAdvanced({ format: e.target.value as "keep" | "jpeg" | "png" | "webp" | "avif" })}
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500"
+        >
+          <option value="keep">Keep original format</option>
+          <option value="jpeg">JPEG</option>
+          <option value="png">PNG</option>
+          <option value="webp">WebP</option>
+        </select>
+        <p className="text-xs text-zinc-500 mt-1">
+          Convert between JPEG, PNG, and WebP formats
+        </p>
+      </div>
+
       {/* Quality */}
       <div>
         <label className="block text-sm font-medium text-zinc-300 mb-2">

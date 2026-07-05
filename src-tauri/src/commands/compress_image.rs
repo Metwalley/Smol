@@ -26,8 +26,19 @@ fn image_preset(preset: &str) -> ImagePreset {
 // ── Output extension ──────────────────────────────────────────────────────────
 
 /// Returns the output extension for a supported format, or None if unsupported.
+/// If target_format is provided, it overrides the default behavior.
 /// Unsupported formats are returned to the caller unchanged (output_larger: true).
-fn image_output_ext(input_ext: &str) -> Option<&'static str> {
+fn image_output_ext(input_ext: &str, target_format: Option<&str>) -> Option<&'static str> {
+    // If a target format is specified, use it
+    if let Some(target) = target_format {
+        return match target {
+            "keep" => None, // keep original format
+            "jpeg" | "png" | "webp" => Some(target),
+            _ => None,
+        };
+    }
+    
+    // Default: keep same format (compression only, no conversion)
     match input_ext {
         "jpg" | "jpeg" => Some("jpg"),
         "png"           => Some("png"),
@@ -87,6 +98,7 @@ pub async fn compress_image(
     input_path: String,
     output_path: String,
     preset: String,
+    target_format: Option<String>,
     // duration_sec is unused for images; accepted so the JS dispatcher can call
     // compressImage with the same signature as compressVideo/compressAudio.
     duration_sec: Option<f64>,
@@ -103,7 +115,7 @@ pub async fn compress_image(
     let effective_ext = input_ext.clone();
 
     // Unsupported format: return original unchanged
-    let Some(out_ext) = image_output_ext(&effective_ext) else {
+    let Some(out_ext) = image_output_ext(&effective_ext, target_format.as_deref()) else {
         let input_bytes = std::fs::metadata(&input_path)?.len();
         return Ok(CompressResult {
             output_path: input_path,
@@ -142,11 +154,11 @@ pub async fn compress_image(
     // Run CPU-bound encoding on a blocking thread so the async runtime stays free
     let compressed = task::spawn_blocking(move || -> Result<Vec<u8>, AppError> {
         let p = image_preset(&preset_c);
-        match effective_ext_c.as_str() {
-            "jpg" | "jpeg" | "bmp" | "tiff" => encode_jpeg(&input_bytes_raw, p.jpeg_quality),
-            "png"                             => encode_png(&input_bytes_raw, p.png_opt_level),
-            "webp"                            => encode_webp(&input_bytes_raw, p.webp_quality, p.lossless),
-            _                                 => unreachable!("filtered by image_output_ext above"),
+        match out_ext.as_str() {
+            "jpg" | "jpeg" => encode_jpeg(&input_bytes_raw, p.jpeg_quality),
+            "png"          => encode_png(&input_bytes_raw, p.png_opt_level),
+            "webp"         => encode_webp(&input_bytes_raw, p.webp_quality, p.lossless),
+            _              => unreachable!("filtered by image_output_ext above"),
         }
     })
     .await

@@ -9,6 +9,7 @@ export function buildOutputPath(
   outputMode: "same-folder" | "subfolder" | "custom",
   filenamePattern: string,
   customOutputDir?: string,
+  targetFormat?: string,
 ): string {
   // Detect path separator (Windows-first since that's the only v1.0 target)
   const sep = inputPath.includes("\\") ? "\\" : "/";
@@ -21,9 +22,15 @@ export function buildOutputPath(
   const name = dotIdx >= 0 ? filename.slice(0, dotIdx) : filename;
   const ext = dotIdx >= 0 ? filename.slice(dotIdx) : ""; // e.g. ".mp4"
 
+  // Determine output extension based on target format
+  let outExt = ext;
+  if (targetFormat && targetFormat !== "keep") {
+    outExt = `.${targetFormat}`;
+  }
+
   const outFilename = filenamePattern
     .replace("{name}", name)
-    .replace("{ext}", ext);
+    .replace("{ext}", outExt);
 
   let outDir: string;
   switch (outputMode) {

@@ -97,6 +97,8 @@ export const cancelJob = (jobId: string) =>
  * The Rust side may change the output extension (e.g. BMP → jpg);
  * the returned CompressResult.outputPath reflects the actual file written.
  * Unsupported formats (AVIF, HEIC, GIF) are returned with outputLarger: true.
+ * 
+ * @param targetFormat - Optional target format for conversion: "jpeg" | "png" | "webp" | "keep"
  */
 export const compressImage = (
   jobId: string,
@@ -105,12 +107,14 @@ export const compressImage = (
   preset: string,
   durationSec: number | null,
   onProgress: Channel<VideoProgressEvent>,
+  targetFormat?: string,
 ) =>
   invoke<CompressResult>("compress_image", {
     jobId,
     inputPath,
     outputPath,
     preset,
+    targetFormat: targetFormat ?? null,
     durationSec,
     onProgress,
   });

@@ -70,6 +70,7 @@ export async function startSqueeze(): Promise<void> {
         outputMode,
         filenamePattern,
         customOutputDir,
+        job.kind === "image" ? (useSettingsStore.getState().advanced.image?.format ?? "keep") : undefined,
       );
 
       // Each job gets its own channel — events carry jobId so routing is exact
@@ -86,6 +87,7 @@ export async function startSqueeze(): Promise<void> {
       try {
         let result;
         if (job.kind === "image") {
+          const imageFormat = useSettingsStore.getState().advanced.image?.format ?? "keep";
           result = await compressImage(
             jobId,
             job.inputPath,
@@ -93,6 +95,7 @@ export async function startSqueeze(): Promise<void> {
             preset,
             job.probe?.durationSec ?? null,
             channel,
+            imageFormat,
           );
         } else {
           const compressFn =
