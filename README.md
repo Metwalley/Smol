@@ -14,31 +14,31 @@
   </a><br/>
   <em>Windows 10 / 11 · 64-bit · 70 MB</em>
   <br/><br/>
-  <img src="Marketing-Assets/hero_showcase.png" alt="Smol — hero screenshot" width="90%" />
+  <img src="Marketing-Assets/hero_showcase.png" alt="Smol , hero screenshot" width="90%" />
 </div>
 
 ---
 
 ## Why Smol?
 
-Most compression tools make you juggle separate apps for video, audio, images, and PDFs. Smol handles all four in a single drag-and-drop queue. Everything runs **100% locally** — your files never leave your machine.
+Most compression tools make you juggle separate apps for video, audio, images, and PDFs. Smol handles all four in a single drag-and-drop queue. Everything runs **100% locally** , your files never leave your machine.
 
 | | |
 |---|---|
 | **No uploads, ever** | All compression runs locally using FFmpeg, Ghostscript, and native Rust libraries. Your files stay yours. |
 | **No codec knowledge required** | Pick from four plain-English presets. Smol maps them to the right encoder settings automatically. |
-| **Hardware-accelerated video** | Automatically uses your NVIDIA, Intel, or AMD GPU for video encoding — no manual setup needed. |
-| **One queue, every format** | MP4, MKV, MOV, MP3, FLAC, JPEG, PNG, WebP, AVIF, and PDF — all in one drop zone. |
+| **Hardware-accelerated video** | Automatically uses your NVIDIA, Intel, or AMD GPU for video encoding , no manual setup needed. |
+| **One queue, every format** | MP4, MKV, MOV, MP3, FLAC, JPEG, PNG, WebP, AVIF, and PDF , all in one drop zone. |
 
 ---
 
 ## Features
 
 ### Unified Drop Zone
-Drop any mix of file types at once. Smol detects each format and routes it to the correct engine automatically. Filter by kind using the chips above the queue — or just squeeze everything at once.
+Drop any mix of file types at once. Smol detects each format and routes it to the correct engine automatically. Filter by kind using the chips above the queue , or just squeeze everything at once.
 
 ### Per-File Precision
-Set a specific target size on individual files right inside the queue row — e.g. exactly 8 MB for a Discord upload — without changing the global preset for the rest of the batch.
+Set a specific target size on individual files right inside the queue row , e.g. exactly 8 MB for a Discord upload , without changing the global preset for the rest of the batch.
 
 ### Three Plain-English Presets
 **Less Compression** · **Recommended** · **Extreme Compression**. No CRF values, no bitrate sliders, no jargon. Recommended is the default and hits the best quality-to-size balance for almost every file.
@@ -76,7 +76,7 @@ https://github.com/user-attachments/assets/42d4dce6-fa8c-4c93-9ae9-fde20ee5b2eb
 
 <div align="center">
   <img src="Marketing-Assets/per_file_settings.png" alt="Per-file target size settings" width="80%" />
-  <br/><em>Set a precise target size per file — perfect for Discord, email, or social media limits.</em>
+  <br/><em>Set a precise target size per file , perfect for Discord, email, or social media limits.</em>
 </div>
 
 <br/>
@@ -112,7 +112,7 @@ node scripts/fetch-ghostscript.mjs
 pnpm tauri dev
 ```
 
-> **Note:** Smol uses pinned FFmpeg and Ghostscript sidecar binaries. Run the two fetch scripts before `pnpm tauri dev` — the app will not start without them.
+> **Note:** Smol uses pinned FFmpeg and Ghostscript sidecar binaries. Run the two fetch scripts before `pnpm tauri dev` , the app will not start without them.
 
 ---
 
